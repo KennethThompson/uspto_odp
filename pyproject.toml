@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uspto_odp"
-version = "0.0.5"
+version = "0.0.6"
 description = "USPTO Open Data Portal Client"
 authors = [
     {name = "Ken Thompson", email = "kenthompson1@gmail.com"},
