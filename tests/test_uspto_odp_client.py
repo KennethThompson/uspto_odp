@@ -139,6 +139,8 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             result3 = await client.get_app_metadata_from_patent_number("11989999")
             result4 = await client.get_patent_wrapper("12760185")
             result5 = await client.get_patent_wrapper("PCTUS0630638")
+            result6 = await client.get_patent_wrapper("PCTUS2015015859")
+            result7 = await client.get_patent_wrapper("PCTUS200403971")
             pass
             
             # All formats should return the same result

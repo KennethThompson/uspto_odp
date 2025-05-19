@@ -127,13 +127,26 @@ class USPTOClient:
                 country, year, number = match.groups()
                 # Use US as default if no country code
                 country = country or 'US'
-                # Strip leading zero from number if present
-                number = str(int(number)) if number.startswith('0') else number
-                # Standardize to PCTYYXXXXXX format
-                serial_number = f"PCT{country}{year}{number}"
+                # First try with original number
+                standardized = f"PCT{country}{year}{number}"
+                
+                try:
+                    url = f"{self.BASE_URL}/{standardized}"
+                    async with self.session.get(url, headers=self.headers) as response:
+                        if response.status == 404 and number.startswith('0'):
+                            # If 404 and has leading zero, try without it
+                            number_no_zero = str(int(number))
+                            standardized = f"PCT{country}{year}{number_no_zero}"
+                            url = f"{self.BASE_URL}/{standardized}"
+                            async with self.session.get(url, headers=self.headers) as retry_response:
+                                return await self._handle_response(retry_response, PatentFileWrapper.parse_response)
+                        return await self._handle_response(response, PatentFileWrapper.parse_response)
+                except Exception as e:
+                    # If any error occurs during retry, raise the original error
+                    raise e
             else:
                 raise ValueError(f"Invalid PCT application number format: {serial_number}")
-
+        
         url = f"{self.BASE_URL}/{serial_number}"
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, PatentFileWrapper.parse_response)
