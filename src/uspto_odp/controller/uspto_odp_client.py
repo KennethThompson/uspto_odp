@@ -33,6 +33,7 @@ from uspto_odp.models.foreign_priority import ForeignPriorityCollection
 from uspto_odp.models.patent_transactions import TransactionCollection
 from uspto_odp.models.patent_assignment import AssignmentCollection
 import os
+import re
 try:
     from enum import StrEnum  # Python 3.11+
 except ImportError:
@@ -105,7 +106,7 @@ class USPTOClient:
         Retrieve the patent application wrapper information.
 
         Args:
-            serial_number (str): The USPTO patent application serial number (e.g., '16123456')
+            serial_number (str): The USPTO patent application serial number (e.g., '16123456' or 'PCTUS2004027676')
 
         Returns:
             PatentFileWrapper: Object containing patent wrapper information
@@ -113,6 +114,21 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
+        # Check if this is a PCT application number
+        if serial_number.startswith('PCT'):
+            # Pattern to match various PCT number formats
+            pct_pattern = r'PCT(?:US|IB|AU)?(\d{2}|\d{4})(\d{6})'
+            match = re.match(pct_pattern, serial_number)
+            
+            if match:
+                year, number = match.groups()
+                # If year is 4 digits, take last 2 digits
+                year = year[-2:] if len(year) == 4 else year
+                # Standardize to PCTUSYYXXXXXX format
+                serial_number = f"PCTUS{year}{number}"
+            else:
+                raise ValueError(f"Invalid PCT application number format: {serial_number}")
+
         url = f"{self.BASE_URL}/{serial_number}"
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, PatentFileWrapper.parse_response)
