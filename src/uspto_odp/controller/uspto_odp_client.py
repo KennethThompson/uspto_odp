@@ -127,6 +127,8 @@ class USPTOClient:
                 country, year, number = match.groups()
                 # Use US as default if no country code
                 country = country or 'US'
+                # Strip leading zero from number if present
+                number = str(int(number)) if number.startswith('0') else number
                 # Standardize to PCTYYXXXXXX format
                 serial_number = f"PCT{country}{year}{number}"
             else:
