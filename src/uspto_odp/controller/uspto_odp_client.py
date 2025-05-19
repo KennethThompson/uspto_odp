@@ -107,6 +107,7 @@ class USPTOClient:
 
         Args:
             serial_number (str): The USPTO patent application serial number (e.g., '16123456' or 'PCTUS2004027676')
+                               If a non-PCT number starts with 'US', it will be stripped (e.g., 'US0506853' -> '0506853')
 
         Returns:
             PatentFileWrapper: Object containing patent wrapper information
@@ -114,6 +115,10 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
+        # Strip 'US' prefix from non-PCT application numbers
+        if serial_number.startswith('US'):
+            serial_number = serial_number[2:]
+
         # Check if this is a PCT application number
         if serial_number.startswith('PCT'):
             # Pattern to match PCT numbers and extract country code, year and remaining digits
