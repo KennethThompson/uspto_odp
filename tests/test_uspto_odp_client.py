@@ -137,6 +137,8 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             # Test different formats of the same patent number
             result2 = await client.get_app_metadata_from_patent_number("11,989,999")
             result3 = await client.get_app_metadata_from_patent_number("11989999")
+            result4 = await client.get_patent_wrapper("12760185")
+            pass
             
             # All formats should return the same result
             assert result1 == result2 == result3

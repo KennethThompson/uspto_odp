@@ -103,6 +103,7 @@ class ApplicationMetadata:
     group_art_unit_number: Optional[str] = None
     examiner_name: Optional[str] = None
     customer_number: Optional[int] = None
+    docket_number: Optional[str] = None
     @property
     def status(self) -> str:
         """Returns the string description of the application status"""
@@ -125,7 +126,8 @@ class ApplicationMetadata:
             customer_number=data.get('customerNumber'),
             group_art_unit_number=data.get('groupArtUnitNumber'),
             examiner_name=data.get('examinerNameText'),
-            grant_date=date.fromisoformat(data['grantDate']) if 'grantDate' in data else None
+            grant_date=date.fromisoformat(data['grantDate']) if 'grantDate' in data else None,
+            docket_number=data.get('docketNumber')
         )
 
 @dataclass
@@ -137,6 +139,7 @@ class PatentFileWrapper:
     inventors: List[Inventor]
     confirmation_number: Optional[str] = None
     customer_number: Optional[int] = None
+    docket_number: Optional[str] = None
     @classmethod
     def from_dict(cls, data: dict) -> 'PatentFileWrapper':
         wrapper_data = data['patentFileWrapperDataBag'][0]
@@ -148,7 +151,8 @@ class PatentFileWrapper:
             inventors=[Inventor.from_dict(inv) for inv in 
                       wrapper_data['applicationMetaData'].get('inventorBag', [])],
             confirmation_number=wrapper_data['applicationMetaData'].get('applicationConfirmationNumber'),
-            customer_number=wrapper_data['applicationMetaData'].get('customerNumber')
+            customer_number=wrapper_data['applicationMetaData'].get('customerNumber'),
+            docket_number=wrapper_data['applicationMetaData'].get('docketNumber')
         )
 
     @classmethod
