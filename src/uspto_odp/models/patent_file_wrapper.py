@@ -37,9 +37,9 @@ class Event:
     @classmethod
     def from_dict(cls, data: dict) -> 'Event':
         return cls(
-            event_code=data['eventCode'],
-            event_description_text=data['eventDescriptionText'],
-            event_date=date.fromisoformat(data['eventDate'])
+            event_code=data.get('eventCode', ''),
+            event_description_text=data.get('eventDescriptionText', ''),
+            event_date=date.fromisoformat(data.get('eventDate', '')) if data.get('eventDate') else None
         )
 
 @dataclass 
@@ -115,18 +115,18 @@ class ApplicationMetadata:
     @classmethod
     def from_dict(cls, data: dict) -> 'ApplicationMetadata':
         return cls(
-            first_inventor_to_file_indicator=data['firstInventorToFileIndicator'],
-            application_status_code=data['applicationStatusCode'],
-            application_type_code=data['applicationTypeCode'],
-            filing_date=date.fromisoformat(data['filingDate']),
-            first_inventor_name=data['firstInventorName'],
-            invention_title=data['inventionTitle'],
+            first_inventor_to_file_indicator=data.get('firstInventorToFileIndicator', ''),
+            application_status_code=data.get('applicationStatusCode', 0),
+            application_type_code=data.get('applicationTypeCode', ''),
+            filing_date=date.fromisoformat(data.get('filingDate', '')) if data.get('filingDate') else None,
+            first_inventor_name=data.get('firstInventorName', ''),
+            invention_title=data.get('inventionTitle', ''),
             patent_number=data.get('patentNumber'),
             confirmation_number=data.get('applicationConfirmationNumber'),
             customer_number=data.get('customerNumber'),
             group_art_unit_number=data.get('groupArtUnitNumber'),
             examiner_name=data.get('examinerNameText'),
-            grant_date=date.fromisoformat(data['grantDate']) if 'grantDate' in data else None,
+            grant_date=date.fromisoformat(data.get('grantDate', '')) if data.get('grantDate') else None,
             docket_number=data.get('docketNumber')
         )
 
@@ -142,17 +142,17 @@ class PatentFileWrapper:
     docket_number: Optional[str] = None
     @classmethod
     def from_dict(cls, data: dict) -> 'PatentFileWrapper':
-        wrapper_data = data['patentFileWrapperDataBag'][0]
+        wrapper_data = data.get('patentFileWrapperDataBag', [{}])[0]
         
         return cls(
-            application_number=wrapper_data['applicationNumberText'],
-            events=[Event.from_dict(event) for event in wrapper_data['eventDataBag']],
-            metadata=ApplicationMetadata.from_dict(wrapper_data['applicationMetaData']),
+            application_number=wrapper_data.get('applicationNumberText', ''),
+            events=[Event.from_dict(event) for event in wrapper_data.get('eventDataBag', [])],
+            metadata=ApplicationMetadata.from_dict(wrapper_data.get('applicationMetaData', {})),
             inventors=[Inventor.from_dict(inv) for inv in 
-                      wrapper_data['applicationMetaData'].get('inventorBag', [])],
-            confirmation_number=wrapper_data['applicationMetaData'].get('applicationConfirmationNumber'),
-            customer_number=wrapper_data['applicationMetaData'].get('customerNumber'),
-            docket_number=wrapper_data['applicationMetaData'].get('docketNumber')
+                      wrapper_data.get('applicationMetaData', {}).get('inventorBag', [])],
+            confirmation_number=wrapper_data.get('applicationMetaData', {}).get('applicationConfirmationNumber'),
+            customer_number=wrapper_data.get('applicationMetaData', {}).get('customerNumber'),
+            docket_number=wrapper_data.get('applicationMetaData', {}).get('docketNumber')
         )
 
     @classmethod
