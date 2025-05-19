@@ -69,7 +69,8 @@ async def test_get_patent_wrapper_success(client):
                 "examinerNameText": "STANFORD, CHRISTOPHER J",
                 "subclass": "472.01",
                 "publicationCategoryBag": ["Pre-Grant Publications - PGPub"],
-                "docketNumber": "OP-100000929"
+                "docketNumber": "OP-100000929",
+                "customerNumber": 84956
             },
             "applicationNumberText": "12345678",
             # ... other fields would be included in actual test
@@ -98,6 +99,7 @@ async def test_get_patent_wrapper_success(client):
     assert len(result.events) >= 2  # At least the two events we included
     assert result.events[0].event_code == "EML_NTR"
     assert result.events[0].event_date == date(2024, 5, 1)
+    assert result.metadata.customer_number == 84956
     mock_session.get.assert_called_once()
     mock_response.json.assert_called_once()
 
@@ -129,6 +131,7 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             assert result1 is not None
             assert result1.get('applicationNumberText') == "18085747"
             assert result1.get('applicationMetaData').get('docketNumber') == "06-1129-C5"
+            assert result1.get('applicationMetaData').get('customerNumber') == 63710
             print(f"Found application number: {result1.get('applicationNumberText')}, docket number: {result1.get('applicationMetaData').get('docketNumber')}")
             
             # Test different formats of the same patent number
