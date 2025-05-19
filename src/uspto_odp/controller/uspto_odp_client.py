@@ -116,16 +116,19 @@ class USPTOClient:
         """
         # Check if this is a PCT application number
         if serial_number.startswith('PCT'):
-            # Pattern to match various PCT number formats
-            pct_pattern = r'PCT(?:US|IB|AU)?(\d{2}|\d{4})(\d{6})'
+            # Pattern to match PCT numbers and extract country code, year and remaining digits
+            # Group 1: Country code (US|IB|AU)
+            # Group 2: Year (2 digits, optionally prefixed with 20)
+            # Group 3: Remaining digits
+            pct_pattern = r'PCT(US|IB|AU)?(?:20)?(\d{2})(\d+)'
             match = re.match(pct_pattern, serial_number)
             
             if match:
-                year, number = match.groups()
-                # If year is 4 digits, take last 2 digits
-                year = year[-2:] if len(year) == 4 else year
-                # Standardize to PCTUSYYXXXXXX format
-                serial_number = f"PCTUS{year}{number}"
+                country, year, number = match.groups()
+                # Use US as default if no country code
+                country = country or 'US'
+                # Standardize to PCTYYXXXXXX format
+                serial_number = f"PCT{country}{year}{number}"
             else:
                 raise ValueError(f"Invalid PCT application number format: {serial_number}")
 
