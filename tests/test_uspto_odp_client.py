@@ -151,7 +151,7 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
         # Create mock client
         mock_session = Mock(spec=aiohttp.ClientSession)
         client = USPTOClient(api_key="test_api_key", session=mock_session)
-        
+
         # Create mock response data for the patent US11,989,999
         mock_response_data = {
             "count": 1,
@@ -166,37 +166,55 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             }],
             "requestIdentifier": "test-request-id-123"
         }
-        
+
         # Create mock response
         mock_response = Mock()
         mock_response.status = 200
         mock_response.json = AsyncMock(return_value=mock_response_data)
-        
+
         # Create async context manager mock
         async_cm = AsyncMock()
         async_cm.__aenter__.return_value = mock_response
         mock_session.post.return_value = async_cm
-        
+
         # Execute test with various patent number formats
-        result1 = await client.get_app_number_from_patent_number("US11,989,999")
-        result2 = await client.get_app_number_from_patent_number("11,989,999")
-        result3 = await client.get_app_number_from_patent_number("11989999")
-        
-        # Assertions
-        assert result1 == "11989999"
-        assert result2 == "11989999"
-        assert result3 == "11989999"
-        
-        # Verify the API was called with the correct payload (sanitized patent number)
-        expected_payload = {
-            "filters": {
-                "applicationMetaData.patentNumber": "11989999"
-            }
-        }
-        
+        result1 = await client.get_app_metadata_from_patent_number("US11,989,999")
+        result2 = await client.get_app_metadata_from_patent_number("11,989,999")
+        result3 = await client.get_app_metadata_from_patent_number("11989999")
+
+        # Assertions: check the applicationNumberText in the returned dict
+        assert result1["applicationNumberText"] == "11989999"
+        assert result2["applicationNumberText"] == "11989999"
+        assert result3["applicationNumberText"] == "11989999"
+
         # Check that post was called 3 times (once for each test case)
         assert mock_session.post.call_count == 3
-        
-        # Check the payload for the first call
         args, kwargs = mock_session.post.call_args_list[0]
+        expected_payload = {
+            "q" : "applicationMetaData.patentNumber:11989999",
+            "filters": [
+                {
+                    "name": "applicationMetaData.applicationTypeLabelName",
+                    "value": ["Utility"]
+                },
+                {
+                    "name": "applicationMetaData.publicationCategoryBag",
+                    "value": ["Granted/Issued"]
+                }
+            ],
+            "sort": [
+                {
+                    "field": "applicationMetaData.filingDate",
+                    "order": "desc"
+                }
+            ],
+            "pagination": {
+                "offset": 0,
+                "limit": 25
+            },
+            "fields": ["applicationNumberText", "applicationMetaData"],
+            "facets": [
+                "applicationMetaData.applicationTypeLabelName"
+            ]        
+        }
         assert kwargs["json"] == expected_payload

@@ -70,7 +70,7 @@ class USPTOError(Exception):
 class USPTOClient:
     """Async client for USPTO Patent Application API"""
     
-    BASE_URL = "https://data.uspto.gov/api/v1/patent/applications"
+    BASE_URL = "https://beta-api.uspto.gov/api/v1/patent/applications"
 
     def __init__(self, api_key: str, session: Optional[aiohttp.ClientSession] = None):
         self.API_KEY = api_key
