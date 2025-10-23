@@ -32,38 +32,38 @@ Note: You must have an API key to use this library. You can learn more about how
 
 ## Patent Application Endpoints
 
-| Endpoint | Status | Library Method | Description |
-|----------|---------|----------------|-------------|
-| `POST /api/v1/patent/applications/search` | ✅ | `search_patent_applications()` | Search patent applications by supplying json payload |
-| `POST /api/v1/patent/applications/search/download` | 🚧 | - | Download patent data search results |
-| `GET /api/v1/patent/applications/{applicationNumberText}` | ✅ | `get_patent_wrapper()` | Patent application data for a provided application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/meta-data` | ⚠️ | `get_app_metadata_from_patent_number()` | Get patent application metadata (via search workaround) |
-| `GET /api/v1/patent/applications/{applicationNumberText}/adjustment` | 🚧 | - | Get patent term adjustment data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/assignment` | ✅ | `get_patent_assignments()` | Get patent assignment data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/attorney` | 🚧 | - | Get attorney/agent data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/continuity` | ✅ | `get_continuity()` | Get continuity data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/foreign-priority` | ✅ | `get_foreign_priority()` | Get foreign-priority data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/transactions` | ✅ | `get_patent_transactions()` | Get transaction data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/documents` | ✅ | `get_patent_documents()` | Documents details for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/associated-documents` | 🚧 | - | Associated documents metadata for an application |
-| `POST /api/v1/patent/applications/text-to-search` | 🚧 | - | Convert natural language text to search query |
+| Endpoint | Methods in API | Supported Methods | Status | Library Method | Description |
+|----------|----------------|-------------------|--------|----------------|-------------|
+| `/api/v1/patent/applications/search` | GET, POST | POST only | ⚠️ | `search_patent_applications()` | Search patent applications by supplying json payload (POST only, GET not supported) |
+| `/api/v1/patent/applications/search/download` | GET, POST | None | 🚧 | - | Download patent data search results (both GET and POST not supported) |
+| `/api/v1/patent/applications/{applicationNumberText}` | GET | GET | ✅ | `get_patent_wrapper()` | Patent application data for a provided application number |
+| `/api/v1/patent/applications/{applicationNumberText}/meta-data` | GET | Via Search | ⚠️ | `get_app_metadata_from_patent_number()` | Get patent application metadata (uses search workaround, not direct GET) |
+| `/api/v1/patent/applications/{applicationNumberText}/adjustment` | GET | None | 🚧 | - | Get patent term adjustment data for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/assignment` | GET | GET | ✅ | `get_patent_assignments()` | Get patent assignment data for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/attorney` | GET | None | 🚧 | - | Get attorney/agent data for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/continuity` | GET | GET | ✅ | `get_continuity()` | Get continuity data for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/foreign-priority` | GET | GET | ✅ | `get_foreign_priority()` | Get foreign-priority data for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/transactions` | GET | GET | ✅ | `get_patent_transactions()` | Get transaction data for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/documents` | GET | GET | ✅ | `get_patent_documents()` | Documents details for an application number |
+| `/api/v1/patent/applications/{applicationNumberText}/associated-documents` | GET | None | 🚧 | - | Associated documents metadata for an application |
 
 ## Other Endpoints
 
-| Endpoint | Status | Library Method | Description |
-|----------|---------|----------------|-------------|
-| `GET /api/v1/patent/status-codes` | 🚧 | - | Get list of patent status codes |
-| `POST /api/v1/datasets/products/search` | 🚧 | - | Search bulk datasets |
-| `GET /api/v1/datasets/products/{productIdentifier}` | 🚧 | - | Get specific bulk dataset |
-| `POST /api/v1/petition/decisions/search` | 🚧 | - | Search petition decisions |
-| `POST /api/v1/petition/decisions/search/download` | 🚧 | - | Download petition decision search results |
-| `GET /api/v1/petition/decisions/{petitionDecisionRecordIdentifier}` | 🚧 | - | Get specific petition decision |
+| Endpoint | Methods in API | Supported Methods | Status | Library Method | Description |
+|----------|----------------|-------------------|--------|----------------|-------------|
+| `/api/v1/patent/status-codes` | GET, POST | None | 🚧 | - | Get list of patent status codes |
+| `/api/v1/datasets/products/search` | GET | None | 🚧 | - | Search bulk datasets |
+| `/api/v1/datasets/products/{productIdentifier}` | GET | None | 🚧 | - | Get specific bulk dataset |
+| `/api/v1/petition/decisions/search` | GET, POST | None | 🚧 | - | Search petition decisions |
+| `/api/v1/petition/decisions/search/download` | GET, POST | None | 🚧 | - | Download petition decision search results |
+| `/api/v1/petition/decisions/{petitionDecisionRecordIdentifier}` | GET | None | 🚧 | - | Get specific petition decision |
 
 ## Coverage Summary
-- **Total Endpoints**: 19
-- **Fully Supported**: 7 (37%)
-- **Partially Supported**: 1 (5%)
-- **Not Yet Supported**: 11 (58%)
+- **Total Unique Endpoints**: 18
+- **Total HTTP Methods Available**: 24 (some endpoints support both GET and POST)
+- **Fully Supported Methods**: 7 (29%)
+- **Partially Supported Methods**: 2 (8%)
+- **Not Yet Supported Methods**: 15 (63%)
 
 ## Legend
 - ✅ Fully Implemented and Available
