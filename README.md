@@ -28,42 +28,43 @@ However, this library will seek to maintain backwards compatibility as much as p
 
 Note: You must have an API key to use this library. You can learn more about how to get an API key at [getting-started](https://beta-data.uspto.gov/apis/getting-started). For up-to-date USPTO information regarding the Open Data Portal, please visit [USPTO Open Data Portal](https://data.uspto.gov/).
 
-# Status of uspto_odp wrapper support for USPTO API endpoints
+# API Endpoint Support Status
 
 ## Patent Application Endpoints
 
-| Endpoint | Methods in API | Supported Methods | Status | Library Method | Description |
-|----------|----------------|-------------------|--------|----------------|-------------|
-| `/api/v1/patent/applications/search` | GET, POST | POST only | ⚠️ | `search_patent_applications()` | Search patent applications by supplying json payload (POST only, GET not supported) |
-| `/api/v1/patent/applications/search/download` | GET, POST | None | 🚧 | - | Download patent data search results (both GET and POST not supported) |
-| `/api/v1/patent/applications/{applicationNumberText}` | GET | GET | ✅ | `get_patent_wrapper()` | Patent application data for a provided application number |
-| `/api/v1/patent/applications/{applicationNumberText}/meta-data` | GET | Via Search | ⚠️ | `get_app_metadata_from_patent_number()` | Get patent application metadata (uses search workaround, not direct GET) |
-| `/api/v1/patent/applications/{applicationNumberText}/adjustment` | GET | None | 🚧 | - | Get patent term adjustment data for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/assignment` | GET | GET | ✅ | `get_patent_assignments()` | Get patent assignment data for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/attorney` | GET | None | 🚧 | - | Get attorney/agent data for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/continuity` | GET | GET | ✅ | `get_continuity()` | Get continuity data for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/foreign-priority` | GET | GET | ✅ | `get_foreign_priority()` | Get foreign-priority data for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/transactions` | GET | GET | ✅ | `get_patent_transactions()` | Get transaction data for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/documents` | GET | GET | ✅ | `get_patent_documents()` | Documents details for an application number |
-| `/api/v1/patent/applications/{applicationNumberText}/associated-documents` | GET | None | 🚧 | - | Associated documents metadata for an application |
+| Endpoint | API Methods | Support | Library Method |
+|----------|-------------|---------|----------------|
+| `.../search` | GET, POST | ⚠️ POST only | `search_patent_applications()` |
+| `.../search/download` | GET, POST | 🚧 None | - |
+| `.../{appNumber}` | GET | ✅ GET | `get_patent_wrapper()` |
+| `.../{appNumber}/meta-data` | GET | ⚠️ Workaround | `get_app_metadata_from_patent_number()` |
+| `.../{appNumber}/adjustment` | GET | 🚧 None | - |
+| `.../{appNumber}/assignment` | GET | ✅ GET | `get_patent_assignments()` |
+| `.../{appNumber}/attorney` | GET | 🚧 None | - |
+| `.../{appNumber}/continuity` | GET | ✅ GET | `get_continuity()` |
+| `.../{appNumber}/foreign-priority` | GET | ✅ GET | `get_foreign_priority()` |
+| `.../{appNumber}/transactions` | GET | ✅ GET | `get_patent_transactions()` |
+| `.../{appNumber}/documents` | GET | ✅ GET | `get_patent_documents()` |
+| `.../{appNumber}/associated-documents` | GET | 🚧 None | - |
+
+**Note:** All endpoints begin with `/api/v1/patent/applications`
 
 ## Other Endpoints
 
-| Endpoint | Methods in API | Supported Methods | Status | Library Method | Description |
-|----------|----------------|-------------------|--------|----------------|-------------|
-| `/api/v1/patent/status-codes` | GET, POST | None | 🚧 | - | Get list of patent status codes |
-| `/api/v1/datasets/products/search` | GET | None | 🚧 | - | Search bulk datasets |
-| `/api/v1/datasets/products/{productIdentifier}` | GET | None | 🚧 | - | Get specific bulk dataset |
-| `/api/v1/petition/decisions/search` | GET, POST | None | 🚧 | - | Search petition decisions |
-| `/api/v1/petition/decisions/search/download` | GET, POST | None | 🚧 | - | Download petition decision search results |
-| `/api/v1/petition/decisions/{petitionDecisionRecordIdentifier}` | GET | None | 🚧 | - | Get specific petition decision |
+| Endpoint | API Methods | Support | Library Method |
+|----------|-------------|---------|----------------|
+| `/api/v1/patent/status-codes` | GET, POST | 🚧 None | - |
+| `/api/v1/datasets/products/search` | GET | 🚧 None | - |
+| `/api/v1/datasets/products/{productId}` | GET | 🚧 None | - |
+| `/api/v1/petition/decisions/search` | GET, POST | 🚧 None | - |
+| `/api/v1/petition/decisions/search/download` | GET, POST | 🚧 None | - |
+| `/api/v1/petition/decisions/{decisionId}` | GET | 🚧 None | - |
 
 ## Coverage Summary
-- **Total Unique Endpoints**: 18
-- **Total HTTP Methods Available**: 24 (some endpoints support both GET and POST)
-- **Fully Supported Methods**: 7 (29%)
-- **Partially Supported Methods**: 2 (8%)
-- **Not Yet Supported Methods**: 15 (63%)
+- **Total Methods Available**: 24
+- **Fully Supported**: 7 (29%)
+- **Partially Supported**: 2 (8%)
+- **Not Supported**: 15 (63%)
 
 ## Legend
 - ✅ Fully Implemented and Available
