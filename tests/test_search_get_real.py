@@ -47,24 +47,25 @@ async def test_search_patent_applications_get_with_pagination():
     api_key = os.environ.get("USPTO_API_KEY")
     if not api_key:
         pytest.skip("USPTO_API_KEY environment variable not set.")
-    
+
     async with aiohttp.ClientSession() as session:
         client = USPTOClient(api_key=api_key, session=session)
-        
+
         # Test with limit and offset
         result = await client.search_patent_applications_get(
             q="applicationMetaData.applicationTypeLabelName:Utility",
             limit=10,
             offset=0
         )
-        
+
         assert result is not None
-        assert "pagination" in result
-        assert result["pagination"]["limit"] == 10
-        assert result["pagination"]["offset"] == 0
+        assert "patentFileWrapperDataBag" in result
+        # Note: The real API doesn't return a separate "pagination" object
+        # It returns the data directly, and we verify the limit was respected
         assert len(result["patentFileWrapperDataBag"]) <= 10
-        
-        print(f"✓ Retrieved {len(result['patentFileWrapperDataBag'])} results with pagination")
+        assert result["count"] > 0  # Should have a total count
+
+        print(f"✓ Retrieved {len(result['patentFileWrapperDataBag'])} results with pagination (limit=10)")
 
 @pytest.mark.asyncio
 async def test_search_patent_applications_get_with_sorting():

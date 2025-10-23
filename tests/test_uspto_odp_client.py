@@ -233,7 +233,7 @@ async def test_search_patent_applications_get_success(client):
     """Test GET /search endpoint with query parameters"""
     client, mock_session = client
     
-    # Create mock response data
+    # Create mock response data (matching real API response format)
     mock_response_data = {
         "count": 2,
         "patentFileWrapperDataBag": [
@@ -256,11 +256,6 @@ async def test_search_patent_applications_get_success(client):
                 }
             }
         ],
-        "pagination": {
-            "offset": 0,
-            "limit": 25,
-            "total": 2
-        },
         "requestIdentifier": "test-request-id"
     }
     
@@ -294,8 +289,8 @@ async def test_search_patent_applications_get_success(client):
 async def test_search_patent_applications_get_with_all_params(client):
     """Test GET /search endpoint with all query parameters"""
     client, mock_session = client
-    
-    # Create mock response data
+
+    # Create mock response data (matching real API response format)
     mock_response_data = {
         "count": 1,
         "patentFileWrapperDataBag": [
@@ -313,24 +308,19 @@ async def test_search_patent_applications_get_with_all_params(client):
                 "DES": 50
             }
         },
-        "pagination": {
-            "offset": 10,
-            "limit": 50,
-            "total": 100
-        },
         "requestIdentifier": "test-request-id"
     }
-    
+
     # Create mock response
     mock_response = Mock()
     mock_response.status = 200
     mock_response.json = AsyncMock(return_value=mock_response_data)
-    
+
     # Create async context manager mock
     async_cm = AsyncMock()
     async_cm.__aenter__.return_value = mock_response
     mock_session.get.return_value = async_cm
-    
+
     # Execute test - all parameters
     result = await client.search_patent_applications_get(
         q="applicationMetaData.inventorBag.inventorNameText:Smith",
@@ -342,12 +332,13 @@ async def test_search_patent_applications_get_with_all_params(client):
         filters="applicationMetaData.applicationTypeCode UTL",
         range_filters="applicationMetaData.grantDate 2010-01-01:2011-01-01"
     )
-    
+
     # Assertions
     assert result is not None
     assert result["count"] == 1
-    assert result["pagination"]["offset"] == 10
-    assert result["pagination"]["limit"] == 50
+    assert len(result["patentFileWrapperDataBag"]) == 1
+    # The real API doesn't return pagination object, just the data
+    assert "facets" in result
     
     # Verify API call was made with all parameters
     mock_session.get.assert_called_once()
@@ -367,18 +358,13 @@ async def test_search_patent_applications_get_with_all_params(client):
 async def test_search_patent_applications_get_no_params(client):
     """Test GET /search endpoint with no parameters (returns top 25)"""
     client, mock_session = client
-    
-    # Create mock response data
+
+    # Create mock response data (matching real API response format)
     mock_response_data = {
-        "count": 25,
+        "count": 1000000,  # Total count in database
         "patentFileWrapperDataBag": [
             {"applicationNumberText": f"1000000{i}"} for i in range(25)
         ],
-        "pagination": {
-            "offset": 0,
-            "limit": 25,
-            "total": 1000000
-        },
         "requestIdentifier": "test-request-id"
     }
     
@@ -397,9 +383,9 @@ async def test_search_patent_applications_get_no_params(client):
     
     # Assertions
     assert result is not None
-    assert result["count"] == 25
-    assert len(result["patentFileWrapperDataBag"]) == 25
-    
+    assert result["count"] == 1000000  # Total count
+    assert len(result["patentFileWrapperDataBag"]) == 25  # Default limit is 25
+
     # Verify API call was made with empty params
     mock_session.get.assert_called_once()
     call_args = mock_session.get.call_args
