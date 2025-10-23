@@ -28,27 +28,46 @@ However, this library will seek to maintain backwards compatibility as much as p
 
 Note: You must have an API key to use this library. You can learn more about how to get an API key at [getting-started](https://beta-data.uspto.gov/apis/getting-started). For up-to-date USPTO information regarding the Open Data Portal, please visit [USPTO Open Data Portal](https://data.uspto.gov/).
 
-# Status of uspto_odp wrapper support for USPTO API endpoints 
+# Status of uspto_odp wrapper support for USPTO API endpoints
 
-| Endpoint | Status | Description |
-|----------|---------|-------------|
-| `GET /api/v1/patent/applications/search` | 🚧 | Patent application search by supplying query parameters |
-| `POST /api/v1/patent/applications/search` | 🚧 | Search patent applications by supplying json payload |
-| `GET /api/v1/patent/applications/search/download` | 🚧 | Patent application search by supplying query parameters |
-| `POST /api/v1/patent/applications/search/download` | 🚧 | Download patent data by supplying json payload |
-| `GET /api/v1/patent/applications/{applicationNumberText}` | ✅ | Patent application data for a provided application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/meta-data` | ✅ | Get patent application meta data |
-| `GET /api/v1/patent/applications/{applicationNumberText}/adjustment` | 🚧 | Get patent term adjustment data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/assignment` | 🚧 | Get patent assignment data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/attorney` | 🚧 | Get attorney/agent data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/continuity` | ✅ | Get continuity data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/foreign-priority` | ✅ | Get foreign-priority data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/transactions` | ✅ | Get transaction data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/documents` | ✅ | Documents details for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/associated-documents` | 🚧 | Associated documents meta-data for an application |
+## Patent Application Endpoints
+
+| Endpoint | Status | Library Method | Description |
+|----------|---------|----------------|-------------|
+| `POST /api/v1/patent/applications/search` | ✅ | `search_patent_applications()` | Search patent applications by supplying json payload |
+| `POST /api/v1/patent/applications/search/download` | 🚧 | - | Download patent data search results |
+| `GET /api/v1/patent/applications/{applicationNumberText}` | ✅ | `get_patent_wrapper()` | Patent application data for a provided application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/meta-data` | ⚠️ | `get_app_metadata_from_patent_number()` | Get patent application metadata (via search workaround) |
+| `GET /api/v1/patent/applications/{applicationNumberText}/adjustment` | 🚧 | - | Get patent term adjustment data for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/assignment` | ✅ | `get_patent_assignments()` | Get patent assignment data for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/attorney` | 🚧 | - | Get attorney/agent data for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/continuity` | ✅ | `get_continuity()` | Get continuity data for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/foreign-priority` | ✅ | `get_foreign_priority()` | Get foreign-priority data for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/transactions` | ✅ | `get_patent_transactions()` | Get transaction data for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/documents` | ✅ | `get_patent_documents()` | Documents details for an application number |
+| `GET /api/v1/patent/applications/{applicationNumberText}/associated-documents` | 🚧 | - | Associated documents metadata for an application |
+| `POST /api/v1/patent/applications/text-to-search` | 🚧 | - | Convert natural language text to search query |
+
+## Other Endpoints
+
+| Endpoint | Status | Library Method | Description |
+|----------|---------|----------------|-------------|
+| `GET /api/v1/patent/status-codes` | 🚧 | - | Get list of patent status codes |
+| `POST /api/v1/datasets/products/search` | 🚧 | - | Search bulk datasets |
+| `GET /api/v1/datasets/products/{productIdentifier}` | 🚧 | - | Get specific bulk dataset |
+| `POST /api/v1/petition/decisions/search` | 🚧 | - | Search petition decisions |
+| `POST /api/v1/petition/decisions/search/download` | 🚧 | - | Download petition decision search results |
+| `GET /api/v1/petition/decisions/{petitionDecisionRecordIdentifier}` | 🚧 | - | Get specific petition decision |
+
+## Coverage Summary
+- **Total Endpoints**: 19
+- **Fully Supported**: 7 (37%)
+- **Partially Supported**: 1 (5%)
+- **Not Yet Supported**: 11 (58%)
 
 ## Legend
-- ✅ Implemented and Available
+- ✅ Fully Implemented and Available
+- ⚠️ Partially Supported (workaround implementation)
 - 🚧 Planned for Future Implementation
 
 ## Installation
