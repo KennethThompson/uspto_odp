@@ -227,3 +227,211 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             ]        
         }
         assert kwargs["json"] == expected_payload
+
+@pytest.mark.asyncio
+async def test_search_patent_applications_get_success(client):
+    """Test GET /search endpoint with query parameters"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "count": 2,
+        "patentFileWrapperDataBag": [
+            {
+                "applicationNumberText": "14412875",
+                "applicationMetaData": {
+                    "patentNumber": "9022434",
+                    "inventionTitle": "Test Patent 1",
+                    "applicationStatusCode": 150,
+                    "applicationTypeLabelName": "Utility"
+                }
+            },
+            {
+                "applicationNumberText": "14412876",
+                "applicationMetaData": {
+                    "patentNumber": "9022435",
+                    "inventionTitle": "Test Patent 2",
+                    "applicationStatusCode": 150,
+                    "applicationTypeLabelName": "Utility"
+                }
+            }
+        ],
+        "pagination": {
+            "offset": 0,
+            "limit": 25,
+            "total": 2
+        },
+        "requestIdentifier": "test-request-id"
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test - simple query
+    result = await client.search_patent_applications_get(q="applicationNumberText:14412875")
+    
+    # Assertions
+    assert result is not None
+    assert result["count"] == 2
+    assert len(result["patentFileWrapperDataBag"]) == 2
+    assert result["patentFileWrapperDataBag"][0]["applicationNumberText"] == "14412875"
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/search")
+    assert call_args[1]["params"]["q"] == "applicationNumberText:14412875"
+    mock_response.json.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_search_patent_applications_get_with_all_params(client):
+    """Test GET /search endpoint with all query parameters"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "count": 1,
+        "patentFileWrapperDataBag": [
+            {
+                "applicationNumberText": "14412875",
+                "applicationMetaData": {
+                    "patentNumber": "9022434",
+                    "filingDate": "2014-12-31"
+                }
+            }
+        ],
+        "facets": {
+            "applicationMetaData.applicationTypeCode": {
+                "UTL": 100,
+                "DES": 50
+            }
+        },
+        "pagination": {
+            "offset": 10,
+            "limit": 50,
+            "total": 100
+        },
+        "requestIdentifier": "test-request-id"
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test - all parameters
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.inventorBag.inventorNameText:Smith",
+        sort="applicationMetaData.filingDate desc",
+        offset=10,
+        limit=50,
+        facets="applicationMetaData.applicationTypeCode,applicationMetaData.docketNumber",
+        fields="applicationNumberText,applicationMetaData.patentNumber",
+        filters="applicationMetaData.applicationTypeCode UTL",
+        range_filters="applicationMetaData.grantDate 2010-01-01:2011-01-01"
+    )
+    
+    # Assertions
+    assert result is not None
+    assert result["count"] == 1
+    assert result["pagination"]["offset"] == 10
+    assert result["pagination"]["limit"] == 50
+    
+    # Verify API call was made with all parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    params = call_args[1]["params"]
+    
+    assert params["q"] == "applicationMetaData.inventorBag.inventorNameText:Smith"
+    assert params["sort"] == "applicationMetaData.filingDate desc"
+    assert params["offset"] == 10
+    assert params["limit"] == 50
+    assert params["facets"] == "applicationMetaData.applicationTypeCode,applicationMetaData.docketNumber"
+    assert params["fields"] == "applicationNumberText,applicationMetaData.patentNumber"
+    assert params["filters"] == "applicationMetaData.applicationTypeCode UTL"
+    assert params["rangeFilters"] == "applicationMetaData.grantDate 2010-01-01:2011-01-01"
+
+@pytest.mark.asyncio
+async def test_search_patent_applications_get_no_params(client):
+    """Test GET /search endpoint with no parameters (returns top 25)"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "count": 25,
+        "patentFileWrapperDataBag": [
+            {"applicationNumberText": f"1000000{i}"} for i in range(25)
+        ],
+        "pagination": {
+            "offset": 0,
+            "limit": 25,
+            "total": 1000000
+        },
+        "requestIdentifier": "test-request-id"
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test - no parameters
+    result = await client.search_patent_applications_get()
+    
+    # Assertions
+    assert result is not None
+    assert result["count"] == 25
+    assert len(result["patentFileWrapperDataBag"]) == 25
+    
+    # Verify API call was made with empty params
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    params = call_args[1]["params"]
+    assert params == {}  # No parameters should be sent
+
+@pytest.mark.asyncio
+async def test_search_patent_applications_get_error_404(client):
+    """Test GET /search endpoint error handling"""
+    client, mock_session = client
+    
+    # Create error response
+    mock_response = Mock()
+    mock_response.status = 404
+    mock_response.json = AsyncMock(return_value={
+        "code": 404,
+        "error": "Not Found",
+        "errorDetails": "No matching records found",
+        "requestIdentifier": "test-request-id"
+    })
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test - should raise USPTOError
+    with pytest.raises(USPTOError) as exc_info:
+        await client.search_patent_applications_get(q="nonexistent:12345")
+    
+    # Verify error details
+    assert exc_info.value.code == 404
+    assert exc_info.value.error == "Not Found"
+    assert exc_info.value.error_details == "No matching records found"
+    assert exc_info.value.request_identifier == "test-request-id"

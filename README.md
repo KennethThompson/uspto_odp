@@ -34,7 +34,7 @@ Note: You must have an API key to use this library. You can learn more about how
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `.../search` | GET, POST | ⚠️ POST only | `search_patent_applications()` |
+| `.../search` | GET, POST | ✅ GET, POST | `search_patent_applications()` (POST)<br>`search_patent_applications_get()` (GET) |
 | `.../search/download` | GET, POST | 🚧 None | - |
 | `.../{appNumber}` | GET | ✅ GET | `get_patent_wrapper()` |
 | `.../{appNumber}/meta-data` | GET | ⚠️ Workaround | `get_app_metadata_from_patent_number()` |
@@ -62,8 +62,8 @@ Note: You must have an API key to use this library. You can learn more about how
 
 ## Coverage Summary
 - **Total Methods Available**: 24
-- **Fully Supported**: 7 (29%)
-- **Partially Supported**: 2 (8%)
+- **Fully Supported**: 8 (33%)
+- **Partially Supported**: 1 (4%)
 - **Not Supported**: 15 (63%)
 
 ## Legend

@@ -311,22 +311,98 @@ class USPTOClient:
 
     async def search_patent_applications(self, payload: dict) -> dict:
         """
-        Search for patent applications using a JSON payload.
-        
-        Endpoint: /api/v1/patent/applications/search
-        
+        Search for patent applications using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/applications/search
+
         Args:
             payload (dict): The search criteria as a JSON-compatible dictionary.
                            Can include fields like query text, sort options, filters, etc.
-                           
+
         Returns:
             dict: The search results as returned by the USPTO API
-            
+
         Raises:
             USPTOError: If the API request fails (400, 403, 404, 413, 500)
         """
         url = f"{self.BASE_URL}/search"
         async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, lambda x: x)  # Return raw JSON response
+
+    async def search_patent_applications_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None
+    ) -> dict:
+        """
+        Search for patent applications using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/applications/search
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'applicationNumberText:14412875'
+            sort (str, optional): Field to sort by followed by order. Example: 'applicationMetaData.filingDate asc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+                                   Example: 'applicationMetaData.applicationTypeCode,applicationMetaData.docketNumber'
+            fields (str, optional): Comma-separated list of fields to include in response.
+                                   Example: 'applicationNumberText,applicationMetaData.patentNumber'
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+                                    Example: 'applicationMetaData.applicationTypeCode UTL,DES'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'applicationMetaData.grantDate 2010-01-01:2011-01-01'
+
+        Returns:
+            dict: The search results as returned by the USPTO API
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 413, 500)
+
+        Examples:
+            # Search by application number
+            results = await client.search_patent_applications_get(q='applicationNumberText:14412875')
+
+            # Search with pagination
+            results = await client.search_patent_applications_get(q='Utility', limit=50, offset=0)
+
+            # Complex search with sorting and filtering
+            results = await client.search_patent_applications_get(
+                q='applicationMetaData.inventorBag.inventorNameText:Smith',
+                sort='applicationMetaData.filingDate desc',
+                filters='applicationMetaData.applicationTypeCode UTL',
+                limit=100
+            )
+        """
+        url = f"{self.BASE_URL}/search"
+
+        # Build query parameters, only including non-None values
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
             return await self._handle_response(response, lambda x: x)  # Return raw JSON response
 
     async def get_app_metadata_from_patent_number(self, patent_number: str) -> Optional[dict]:
