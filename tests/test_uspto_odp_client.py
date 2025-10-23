@@ -120,29 +120,38 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
     
     if use_real_api:
         # Use real API
+        import asyncio
         print("Using real USPTO API with provided API key")
         async with aiohttp.ClientSession() as session:
             client = USPTOClient(api_key=api_key, session=session)
-            
+
             # Test with various patent number formats
             result1 = await client.get_app_metadata_from_patent_number("US11,989,999")
-            
+
             # Assert we got a result
             assert result1 is not None
             assert result1.get('applicationNumberText') == "18085747"
             assert result1.get('applicationMetaData').get('docketNumber') == "06-1129-C5"
             assert result1.get('applicationMetaData').get('customerNumber') == 63710
             print(f"Found application number: {result1.get('applicationNumberText')}, docket number: {result1.get('applicationMetaData').get('docketNumber')}")
-            
+
+            # Add delay to avoid rate limiting
+            await asyncio.sleep(1)
+
             # Test different formats of the same patent number
             result2 = await client.get_app_metadata_from_patent_number("11,989,999")
+            await asyncio.sleep(1)
             result3 = await client.get_app_metadata_from_patent_number("11989999")
+            await asyncio.sleep(1)
             result4 = await client.get_patent_wrapper("12760185")
+            await asyncio.sleep(1)
             result5 = await client.get_patent_wrapper("PCTUS0630638")
+            await asyncio.sleep(1)
             result6 = await client.get_patent_wrapper("PCTUS2015015859")
+            await asyncio.sleep(1)
             result7 = await client.get_patent_wrapper("PCTUS200403971")
             pass
-            
+
             # All formats should return the same result
             assert result1 == result2 == result3
     else:

@@ -1143,7 +1143,7 @@ async def test_get_patent_documents_success(client):
     
     # Test API call
     mock_session.get.assert_called_once_with(
-        "https://data.uspto.gov/api/v1/patent/applications/12345678/documents",
+        "https://api.uspto.gov/api/v1/patent/applications/12345678/documents",
         headers={
             "X-API-KEY": "test_api_key",
             "accept": "application/json"
