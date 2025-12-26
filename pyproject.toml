@@ -26,6 +26,7 @@ dev = [
     "pytest>=7.0",
     "pytest-asyncio",
     "coverage",
+    "python-dotenv",
 ]
 
 [tool.setuptools]

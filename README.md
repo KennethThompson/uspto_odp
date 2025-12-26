@@ -28,27 +28,47 @@ However, this library will seek to maintain backwards compatibility as much as p
 
 Note: You must have an API key to use this library. You can learn more about how to get an API key at [getting-started](https://beta-data.uspto.gov/apis/getting-started). For up-to-date USPTO information regarding the Open Data Portal, please visit [USPTO Open Data Portal](https://data.uspto.gov/).
 
-# Status of uspto_odp wrapper support for USPTO API endpoints 
+# API Endpoint Support Status
 
-| Endpoint | Status | Description |
-|----------|---------|-------------|
-| `GET /api/v1/patent/applications/search` | 🚧 | Patent application search by supplying query parameters |
-| `POST /api/v1/patent/applications/search` | 🚧 | Search patent applications by supplying json payload |
-| `GET /api/v1/patent/applications/search/download` | 🚧 | Patent application search by supplying query parameters |
-| `POST /api/v1/patent/applications/search/download` | 🚧 | Download patent data by supplying json payload |
-| `GET /api/v1/patent/applications/{applicationNumberText}` | ✅ | Patent application data for a provided application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/meta-data` | ✅ | Get patent application meta data |
-| `GET /api/v1/patent/applications/{applicationNumberText}/adjustment` | 🚧 | Get patent term adjustment data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/assignment` | 🚧 | Get patent assignment data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/attorney` | 🚧 | Get attorney/agent data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/continuity` | ✅ | Get continuity data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/foreign-priority` | ✅ | Get foreign-priority data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/transactions` | ✅ | Get transaction data for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/documents` | ✅ | Documents details for an application number |
-| `GET /api/v1/patent/applications/{applicationNumberText}/associated-documents` | 🚧 | Associated documents meta-data for an application |
+## Patent Application Endpoints
+
+| Endpoint | API Methods | Support | Library Method |
+|----------|-------------|---------|----------------|
+| `.../search` | GET, POST | ✅ GET, POST | `search_patent_applications()` (POST)<br>`search_patent_applications_get()` (GET) |
+| `.../search/download` | GET, POST | 🚧 None | - |
+| `.../{appNumber}` | GET | ✅ GET | `get_patent_wrapper()` |
+| `.../{appNumber}/meta-data` | GET | ⚠️ Workaround | `get_app_metadata_from_patent_number()` |
+| `.../{appNumber}/adjustment` | GET | 🚧 None | - |
+| `.../{appNumber}/assignment` | GET | ✅ GET | `get_patent_assignments()` |
+| `.../{appNumber}/attorney` | GET | 🚧 None | - |
+| `.../{appNumber}/continuity` | GET | ✅ GET | `get_continuity()` |
+| `.../{appNumber}/foreign-priority` | GET | ✅ GET | `get_foreign_priority()` |
+| `.../{appNumber}/transactions` | GET | ✅ GET | `get_patent_transactions()` |
+| `.../{appNumber}/documents` | GET | ✅ GET | `get_patent_documents()` |
+| `.../{appNumber}/associated-documents` | GET | 🚧 None | - |
+
+**Note:** All endpoints begin with `/api/v1/patent/applications`
+
+## Other Endpoints
+
+| Endpoint | API Methods | Support | Library Method |
+|----------|-------------|---------|----------------|
+| `/api/v1/patent/status-codes` | GET, POST | 🚧 None | - |
+| `/api/v1/datasets/products/search` | GET | 🚧 None | - |
+| `/api/v1/datasets/products/{productId}` | GET | 🚧 None | - |
+| `/api/v1/petition/decisions/search` | GET, POST | 🚧 None | - |
+| `/api/v1/petition/decisions/search/download` | GET, POST | 🚧 None | - |
+| `/api/v1/petition/decisions/{decisionId}` | GET | 🚧 None | - |
+
+## Coverage Summary
+- **Total Methods Available**: 24
+- **Fully Supported**: 8 (33%)
+- **Partially Supported**: 1 (4%)
+- **Not Supported**: 15 (63%)
 
 ## Legend
-- ✅ Implemented and Available
+- ✅ Fully Implemented and Available
+- ⚠️ Partially Supported (workaround implementation)
 - 🚧 Planned for Future Implementation
 
 ## Installation

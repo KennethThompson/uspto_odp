@@ -26,7 +26,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GXKRD3UXPXXIFW4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GXKRD3UXPXXIFW4.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -41,7 +41,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/KYABUKWLLDFLYX5.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/KYABUKWLLDFLYX5.pdf",
                         "pageTotalQuantity": 3
                     }
                 ]
@@ -56,7 +56,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/IYKJN6P7RXEAPX0.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/IYKJN6P7RXEAPX0.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -71,7 +71,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GTGKYNCBPPOPPY2.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GTGKYNCBPPOPPY2.pdf",
                         "pageTotalQuantity": 2
                     }
                 ]
@@ -86,7 +86,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GY2ZH85NPXXIFW4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GY2ZH85NPXXIFW4.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -101,7 +101,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GVSJ4PX7PXXIFW4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GVSJ4PX7PXXIFW4.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -116,7 +116,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/FQ0SPLX2PPOPPY5.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/FQ0SPLX2PPOPPY5.pdf",
                         "pageTotalQuantity": 3
                     }
                 ]
@@ -131,7 +131,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GQMFBYJSPPOPPY5.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GQMFBYJSPPOPPY5.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -146,7 +146,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/J66XGWQGRXEAPX1.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/J66XGWQGRXEAPX1.pdf",
                         "pageTotalQuantity": 2
                     }
                 ]
@@ -161,7 +161,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/KH10C73GLDFLYX4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/KH10C73GLDFLYX4.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -176,7 +176,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GY2ZH85XPXXIFW4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GY2ZH85XPXXIFW4.pdf",
                         "pageTotalQuantity": 2
                     }
                 ]
@@ -191,7 +191,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/IR3SLP23RXEAPX2.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/IR3SLP23RXEAPX2.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -206,7 +206,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/KK87CFKWDFLYX11.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/KK87CFKWDFLYX11.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -221,7 +221,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GVWJ4NMLPXXIFW4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GVWJ4NMLPXXIFW4.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -236,7 +236,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/GVCL8UT2PXXIFW3.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/GVCL8UT2PXXIFW3.pdf",
                         "pageTotalQuantity": 1
                     }
                 ]
@@ -251,12 +251,12 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/FPC9GG5LPPOPPY4.pdf",
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/FPC9GG5LPPOPPY4.pdf",
                         "pageTotalQuantity": 2
                     },
                     {
                         "mimeTypeIdentifier": "XML",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/FPC9GG5LPPOPPY4/xmlarchive"
+                        "downloadUrl": "https://data.uspto.gov/api/v1/download/applications/12345678/FPC9GG5LPPOPPY4/xmlarchive"
                     }
                 ]
             },
@@ -454,7 +454,7 @@ async def test_get_patent_documents_success(client):
                 "downloadOptionBag": [
                     {
                         "mimeTypeIdentifier": "PDF",
-                        "downloadUrl": "https://beta-api.uspto.gov/api/v1/download/applications/12345678/L6BYWPITXBLUEX2.pdf",
+                        "downloadUrl": "https://.uspto.gov/api/v1/download/applications/12345678/L6BYWPITXBLUEX2.pdf",
                         "pageTotalQuantity": 4
                     }
                 ]
@@ -1143,7 +1143,7 @@ async def test_get_patent_documents_success(client):
     
     # Test API call
     mock_session.get.assert_called_once_with(
-        "https://beta-api.uspto.gov/api/v1/patent/applications/12345678/documents",
+        "https://api.uspto.gov/api/v1/patent/applications/12345678/documents",
         headers={
             "X-API-KEY": "test_api_key",
             "accept": "application/json"
