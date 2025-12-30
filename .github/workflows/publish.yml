@@ -13,9 +13,6 @@ jobs:
     name: Build and publish to PyPI
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write  # Required for trusted publishing
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,4 +34,7 @@ jobs:
         run: twine check dist/*
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*
