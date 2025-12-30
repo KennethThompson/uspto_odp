@@ -32,6 +32,12 @@ from uspto_odp.models.patent_continuity import ContinuityCollection
 from uspto_odp.models.foreign_priority import ForeignPriorityCollection
 from uspto_odp.models.patent_transactions import TransactionCollection
 from uspto_odp.models.patent_assignment import AssignmentCollection
+from uspto_odp.models.patent_status_codes import StatusCodeCollection
+from uspto_odp.models.patent_metadata import ApplicationMetadataResponse
+from uspto_odp.models.patent_attorney import AttorneyResponse
+from uspto_odp.models.patent_adjustment import AdjustmentResponse
+from uspto_odp.models.patent_associated_documents import AssociatedDocumentsResponse
+from uspto_odp.models.patent_search_download import PatentDataResponse
 import os
 import re
 try:
@@ -111,6 +117,14 @@ class USPTOClient:
         Base path: /v1/ptab/trials
         """
         return f"{self.BASE_API_URL}/v1/ptab/trials"
+
+    @property
+    def _status_codes_endpoint(self) -> str:
+        """
+        Status Codes service endpoint.
+        Base path: /v1/patent/status-codes
+        """
+        return f"{self.BASE_API_URL}/v1/patent/status-codes"
 
     def _build_url(self, service_endpoint: str, *path_segments: str) -> str:
         """
@@ -361,6 +375,57 @@ class USPTOClient:
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, AssignmentCollection.from_dict)
 
+    async def get_attorney(self, serial_number: str) -> AttorneyResponse:
+        """
+        Retrieve attorney/agent information for a patent application.
+
+        Args:
+            serial_number (str): The USPTO patent application serial number (e.g., '16123456')
+
+        Returns:
+            AttorneyResponse: Attorney/agent data for the application
+
+        Raises:
+            USPTOError: If the API request fails
+        """
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "attorney")
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, AttorneyResponse.from_dict)
+
+    async def get_adjustment(self, serial_number: str) -> AdjustmentResponse:
+        """
+        Retrieve patent term adjustment information for a patent application.
+
+        Args:
+            serial_number (str): The USPTO patent application serial number (e.g., '16123456')
+
+        Returns:
+            AdjustmentResponse: Patent term adjustment data for the application
+
+        Raises:
+            USPTOError: If the API request fails
+        """
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "adjustment")
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, AdjustmentResponse.from_dict)
+
+    async def get_associated_documents(self, serial_number: str) -> AssociatedDocumentsResponse:
+        """
+        Retrieve associated documents (PGPub and Grant) metadata for a patent application.
+
+        Args:
+            serial_number (str): The USPTO patent application serial number (e.g., '16123456')
+
+        Returns:
+            AssociatedDocumentsResponse: Associated documents metadata for the application
+
+        Raises:
+            USPTOError: If the API request fails
+        """
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "associated-documents")
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, AssociatedDocumentsResponse.from_dict)
+
     async def search_patent_applications(self, payload: dict) -> dict:
         """
         Search for patent applications using a JSON payload (POST method).
@@ -457,15 +522,135 @@ class USPTOClient:
         async with self.session.get(url, params=params, headers=self.headers) as response:
             return await self._handle_response(response, lambda x: x)  # Return raw JSON response
 
-    async def get_app_metadata_from_patent_number(self, patent_number: str) -> Optional[dict]:
+    async def search_patent_applications_download(self, payload: dict) -> PatentDataResponse:
+        """
+        Download patent application search results using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/applications/search/download
+
+        This endpoint is similar to search_patent_applications but optimized for downloads.
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+                           Can include fields like query text, sort options, filters, etc.
+
+        Returns:
+            PatentDataResponse: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 413, 500)
+        """
+        url = self._build_url(self._patent_applications_endpoint, "search", "download")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, PatentDataResponse.from_dict)
+
+    async def search_patent_applications_download_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None,
+        format: Optional[str] = None
+    ) -> PatentDataResponse:
+        """
+        Download patent application search results using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/applications/search/download
+
+        This endpoint is similar to search_patent_applications_get but optimized for downloads.
+        Supports a format parameter for download format (json or csv).
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'applicationNumberText:14412875'
+            sort (str, optional): Field to sort by followed by order. Example: 'applicationMetaData.filingDate asc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+                                   Example: 'applicationMetaData.applicationTypeCode,applicationMetaData.docketNumber'
+            fields (str, optional): Comma-separated list of fields to include in response.
+                                   Example: 'applicationNumberText,applicationMetaData.patentNumber'
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+                                    Example: 'applicationMetaData.applicationTypeCode UTL,DES'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'applicationMetaData.grantDate 2010-01-01:2011-01-01'
+            format (str, optional): Download format. Options: 'json' or 'csv'. Default: 'json'
+
+        Returns:
+            PatentDataResponse: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 413, 500)
+
+        Examples:
+            # Download search results in JSON format
+            results = await client.search_patent_applications_download_get(q='applicationNumberText:14412875', format='json')
+
+            # Download search results in CSV format
+            results = await client.search_patent_applications_download_get(q='Utility', format='csv', limit=100)
+        """
+        url = self._build_url(self._patent_applications_endpoint, "search", "download")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+        if format is not None:
+            params['format'] = format
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, PatentDataResponse.from_dict)
+
+    async def get_app_metadata(self, application_number: str) -> ApplicationMetadataResponse:
+        """
+        Get application metadata directly from the /meta-data endpoint using an application number.
+        
+        This is the direct implementation of the /api/v1/patent/applications/{applicationNumberText}/meta-data endpoint.
+        
+        Args:
+            application_number (str): The application number (e.g., "14412875" or "14/412,875")
+            
+        Returns:
+            ApplicationMetadataResponse: The application metadata response containing application number and metadata
+            
+        Raises:
+            USPTOError: If the API request fails (e.g., 404 if application not found)
+        """
+        # Build URL for the meta-data endpoint: /api/v1/patent/applications/{applicationNumberText}/meta-data
+        url = self._build_url(self._patent_applications_endpoint, application_number, "meta-data")
+        
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, ApplicationMetadataResponse.from_dict)
+
+    async def get_app_metadata_from_patent_number(self, patent_number: str) -> Optional[ApplicationMetadataResponse]:
         """
         Get the application metadata associated with a patent number.
+        
+        This method searches for the application number using the patent number, then calls
+        the direct meta-data endpoint. This is a convenience method for users who have a patent
+        number but need the application metadata.
         
         Args:
             patent_number (str): The patent number to search for (e.g., "US9,022,434" or "9022434")
             
         Returns:
-            Optional[str]: The application number if found, None otherwise
+            Optional[ApplicationMetadataResponse]: The application metadata if found, None otherwise
             
         Raises:
             USPTOError: If the API request fails
@@ -473,7 +658,7 @@ class USPTOClient:
         # Sanitize the patent number by removing "US" prefix and any non-digit characters
         sanitized_patent = ''.join(c for c in patent_number if c.isdigit())
         
-        # Create the search payload
+        # Create the search payload to find the application number from the patent number
         payload = {
             "q" : "applicationMetaData.patentNumber:" + sanitized_patent,
             "filters": [
@@ -502,12 +687,95 @@ class USPTOClient:
             ]        
         }
         
-        # Make the search request
+        # Make the search request to find the application number
         response = await self.search_patent_applications(payload)
         
         # Check if we got results
         if response.get('count', 0) > 0 and 'patentFileWrapperDataBag' in response:
-            # Return the application number from the first result
-            return response['patentFileWrapperDataBag'][0]
+            # Extract the application number from the first result
+            application_number = response['patentFileWrapperDataBag'][0].get('applicationNumberText')
+            
+            if application_number:
+                # Use the direct meta-data endpoint with the found application number
+                return await self.get_app_metadata(application_number)
         
         return None
+
+    async def search_status_codes_get(
+        self,
+        q: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None
+    ) -> StatusCodeCollection:
+        """
+        Search for patent application status codes using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/status-codes
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). 
+                              Example: 'applicationStatusDescriptionText:Preexam'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+
+        Returns:
+            StatusCodeCollection: Collection of status codes matching the search criteria
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Search by status description
+            result = await client.search_status_codes_get(q='applicationStatusDescriptionText:Preexam')
+
+            # Search with comparison operator
+            result = await client.search_status_codes_get(q='applicationStatusCode:>100', limit=50)
+
+            # Search with pagination
+            result = await client.search_status_codes_get(q='Application AND Preexam', limit=10, offset=0)
+        """
+        url = self._build_url(self._status_codes_endpoint)
+
+        # Build query parameters, only including non-None values
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, StatusCodeCollection.from_dict)
+
+    async def search_status_codes(self, payload: dict) -> StatusCodeCollection:
+        """
+        Search for patent application status codes using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/status-codes
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+                           Can include fields like query text, pagination, etc.
+                           All fields in the request are optional.
+
+        Returns:
+            StatusCodeCollection: Collection of status codes matching the search criteria
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Example:
+            payload = {
+                "q": "applicationStatusCode:>100",
+                "pagination": {
+                    "offset": 0,
+                    "limit": 25
+                }
+            }
+            result = await client.search_status_codes(payload)
+        """
+        url = self._build_url(self._status_codes_endpoint)
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, StatusCodeCollection.from_dict)

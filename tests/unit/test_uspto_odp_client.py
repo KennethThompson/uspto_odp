@@ -5,6 +5,7 @@ from unittest.mock import Mock, AsyncMock
 import aiohttp
 from uspto_odp.controller.uspto_odp_client import USPTOClient, USPTOError
 from uspto_odp.models.patent_file_wrapper import PatentFileWrapper
+from uspto_odp.models.patent_metadata import ApplicationMetadataResponse
 from datetime import date
 
 
@@ -130,10 +131,11 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
 
             # Assert we got a result
             assert result1 is not None
-            assert result1.get('applicationNumberText') == "18085747"
-            assert result1.get('applicationMetaData').get('docketNumber') == "06-1129-C5"
-            assert result1.get('applicationMetaData').get('customerNumber') == 63710
-            print(f"Found application number: {result1.get('applicationNumberText')}, docket number: {result1.get('applicationMetaData').get('docketNumber')}")
+            assert isinstance(result1, ApplicationMetadataResponse)
+            assert result1.application_number == "18085747"
+            assert result1.metadata.docket_number == "06-1129-C5"
+            assert result1.metadata.customer_number == 63710
+            print(f"Found application number: {result1.application_number}, docket number: {result1.metadata.docket_number}")
 
             # Add delay to avoid rate limiting
             await asyncio.sleep(1)
@@ -152,8 +154,8 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             result7 = await client.get_patent_wrapper("PCTUS200403971")
             pass
 
-            # All formats should return the same result
-            assert result1 == result2 == result3
+            # All formats should return the same application number
+            assert result1.application_number == result2.application_number == result3.application_number
     else:
         # Use mock testing
         print("No API key found, using mock testing")
@@ -161,43 +163,83 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
         mock_session = Mock(spec=aiohttp.ClientSession)
         client = USPTOClient(api_key="test_api_key", session=mock_session)
 
-        # Create mock response data for the patent US11,989,999
-        mock_response_data = {
+        # Create mock response data for the search (to find application number)
+        mock_search_response_data = {
             "count": 1,
             "patentFileWrapperDataBag": [{
-                "applicationNumberText": "11989999",  # This is what we expect to get back
+                "applicationNumberText": "18085747",  # Application number found from patent search
                 "applicationMetaData": {
-                    "patentNumber": "11989999",
-                    "inventionTitle": "Test Patent Invention",
-                    "applicationStatusCode": 150,
-                    "applicationStatusDescriptionText": "Patented Case"
+                    "patentNumber": "11989999"
                 }
             }],
-            "requestIdentifier": "test-request-id-123"
+            "requestIdentifier": "test-search-request-id"
         }
 
-        # Create mock response
-        mock_response = Mock()
-        mock_response.status = 200
-        mock_response.json = AsyncMock(return_value=mock_response_data)
+        # Create mock response data for the meta-data endpoint
+        mock_metadata_response_data = {
+            "count": 1,
+            "patentFileWrapperDataBag": [{
+                "applicationNumberText": "18085747",
+                "applicationMetaData": {
+                    "firstInventorToFileIndicator": "N",
+                    "applicationStatusCode": 150,
+                    "applicationTypeCode": "UTL",
+                    "filingDate": "2023-01-15",
+                    "firstInventorName": "Test Inventor",
+                    "inventionTitle": "Test Patent Invention",
+                    "patentNumber": "11989999",
+                    "grantDate": "2024-01-15",
+                    "docketNumber": "06-1129-C5",
+                    "customerNumber": 63710
+                }
+            }],
+            "requestIdentifier": "test-metadata-request-id"
+        }
 
-        # Create async context manager mock
-        async_cm = AsyncMock()
-        async_cm.__aenter__.return_value = mock_response
-        mock_session.post.return_value = async_cm
+        # Create mock responses
+        mock_search_response = Mock()
+        mock_search_response.status = 200
+        mock_search_response.json = AsyncMock(return_value=mock_search_response_data)
+
+        mock_metadata_response = Mock()
+        mock_metadata_response.status = 200
+        mock_metadata_response.json = AsyncMock(return_value=mock_metadata_response_data)
+
+        # Create async context manager mocks
+        async_cm_search = AsyncMock()
+        async_cm_search.__aenter__.return_value = mock_search_response
+        mock_session.post.return_value = async_cm_search
+
+        async_cm_metadata = AsyncMock()
+        async_cm_metadata.__aenter__.return_value = mock_metadata_response
+        mock_session.get.return_value = async_cm_metadata
 
         # Execute test with various patent number formats
         result1 = await client.get_app_metadata_from_patent_number("US11,989,999")
         result2 = await client.get_app_metadata_from_patent_number("11,989,999")
         result3 = await client.get_app_metadata_from_patent_number("11989999")
 
-        # Assertions: check the applicationNumberText in the returned dict
-        assert result1["applicationNumberText"] == "11989999"
-        assert result2["applicationNumberText"] == "11989999"
-        assert result3["applicationNumberText"] == "11989999"
+        # Assertions: check the ApplicationMetadataResponse object
+        assert result1 is not None
+        assert isinstance(result1, ApplicationMetadataResponse)
+        assert result1.application_number == "18085747"
+        assert result1.metadata.patent_number == "11989999"
+        assert result1.metadata.docket_number == "06-1129-C5"
+        assert result1.metadata.customer_number == 63710
 
-        # Check that post was called 3 times (once for each test case)
+        assert result2 is not None
+        assert isinstance(result2, ApplicationMetadataResponse)
+        assert result2.application_number == "18085747"
+
+        assert result3 is not None
+        assert isinstance(result3, ApplicationMetadataResponse)
+        assert result3.application_number == "18085747"
+
+        # Check that post was called 3 times (search) and get was called 3 times (meta-data)
         assert mock_session.post.call_count == 3
+        assert mock_session.get.call_count == 3
+        
+        # Verify search payload
         args, kwargs = mock_session.post.call_args_list[0]
         expected_payload = {
             "q" : "applicationMetaData.patentNumber:11989999",
@@ -227,6 +269,98 @@ async def test_get_app_metadata_from_patent_number(monkeypatch):
             ]        
         }
         assert kwargs["json"] == expected_payload
+        
+        # Verify meta-data endpoint URL
+        get_args, get_kwargs = mock_session.get.call_args_list[0]
+        assert "18085747" in get_args[0] or "18085747" in str(get_args[0])
+        assert "meta-data" in get_args[0] or "meta-data" in str(get_args[0])
+
+@pytest.mark.asyncio
+async def test_get_app_metadata_success(client):
+    """Test get_app_metadata method that calls the /meta-data endpoint directly"""
+    client, mock_session = client
+    
+    # Create mock response data for the meta-data endpoint
+    mock_response_data = {
+        "count": 1,
+        "patentFileWrapperDataBag": [{
+            "applicationNumberText": "14412875",
+            "applicationMetaData": {
+                "firstInventorToFileIndicator": "Y",
+                "applicationStatusCode": 161,
+                "applicationTypeCode": "UTL",
+                "filingDate": "2022-01-15",
+                "firstInventorName": "John Doe",
+                "inventionTitle": "Test Invention Title",
+                "patentNumber": "12345678",
+                "grantDate": "2023-01-15",
+                "docketNumber": "TEST-001",
+                "customerNumber": 12345,
+                "groupArtUnitNumber": "1234",
+                "examinerNameText": "Jane Examiner"
+            }
+        }],
+        "requestIdentifier": "test-metadata-request-id"
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test
+    result = await client.get_app_metadata("14412875")
+    
+    # Assertions
+    assert result is not None
+    assert isinstance(result, ApplicationMetadataResponse)
+    assert result.application_number == "14412875"
+    assert result.metadata.application_status_code == 161
+    assert result.metadata.invention_title == "Test Invention Title"
+    assert result.metadata.patent_number == "12345678"
+    assert result.metadata.docket_number == "TEST-001"
+    assert result.metadata.customer_number == 12345
+    assert result.request_identifier == "test-metadata-request-id"
+    
+    # Verify GET was called with correct URL
+    assert mock_session.get.call_count == 1
+    args, kwargs = mock_session.get.call_args_list[0]
+    assert "14412875" in args[0] or "14412875" in str(args[0])
+    assert "meta-data" in args[0] or "meta-data" in str(args[0])
+    assert kwargs["headers"]["X-API-KEY"] == "test_api_key"
+
+@pytest.mark.asyncio
+async def test_get_app_metadata_not_found(client):
+    """Test get_app_metadata method with non-existent application number"""
+    client, mock_session = client
+    
+    # Create mock error response
+    mock_error_data = {
+        "code": 404,
+        "error": "Not Found",
+        "errorDetails": "No matching records found",
+        "requestIdentifier": "test-error-id"
+    }
+    
+    mock_response = Mock()
+    mock_response.status = 404
+    mock_response.json = AsyncMock(return_value=mock_error_data)
+    
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test and expect USPTOError
+    with pytest.raises(USPTOError) as exc_info:
+        await client.get_app_metadata("99999999")
+    
+    assert exc_info.value.code == 404
+    assert "Not Found" in str(exc_info.value)
 
 @pytest.mark.asyncio
 async def test_search_patent_applications_get_success(client):
