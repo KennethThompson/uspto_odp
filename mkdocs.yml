@@ -7,7 +7,6 @@ repo_name: KennethThompson/uspto_odp
 theme:
   name: material
   features:
-    - navigation.tabs
     - navigation.sections
     - navigation.expand
     - navigation.top
