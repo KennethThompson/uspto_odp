@@ -67,6 +67,8 @@ async def test_get_app_metadata_from_patent_number_with_commas(client, known_pat
     """
     Test get_app_metadata_from_patent_number with comma-separated format.
     """
+    await asyncio.sleep(2)  # Rate limiting - sleep before making API call
+    
     patent_number = known_patent_numbers["with_commas"]
     result = await client.get_app_metadata_from_patent_number(patent_number)
     
@@ -153,11 +155,13 @@ async def test_get_app_metadata_consistency(client, known_patent_numbers, known_
     Verify that get_app_metadata and get_app_metadata_from_patent_number return consistent data
     when given the same application.
     """
+    await asyncio.sleep(2)  # Rate limiting - sleep before making calls
+    
     # First get application number from patent number
     patent_number = known_patent_numbers["plain"]
     result_from_patent = await client.get_app_metadata_from_patent_number(patent_number)
     
-    await asyncio.sleep(1)  # Rate limiting
+    await asyncio.sleep(2)  # Rate limiting - sleep between calls
     
     if result_from_patent:
         app_number = result_from_patent.application_number
