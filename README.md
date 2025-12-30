@@ -6,6 +6,9 @@
 
 Simple, lightweight python client library to support access to the USPTO Open Data Portal (ODP)
 
+[![Documentation](https://img.shields.io/badge/docs-latest-blue)](https://kenneththompson.github.io/uspto_odp/)
+[![PyPI version](https://badge.fury.io/py/uspto-odp.svg)](https://badge.fury.io/py/uspto-odp)
+
 
 | Python Version | Build Status |
 |---------------|--------------|
@@ -167,7 +170,43 @@ print(uspto_odp.__version__)
 ```
 
 ## Usage
-To be completed at a later date.
+
+### Quick Example
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def main():
+    # Initialize the client with your API key
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Search for patent applications
+    results = await client.search_patent_applications_get(
+        q="applicationNumberText:14412875"
+    )
+    
+    # Get patent metadata
+    metadata = await client.get_app_metadata("14412875")
+    print(f"Application: {metadata.application_number}")
+    
+    # Clean up
+    await client.session.close()
+
+asyncio.run(main())
+```
+
+### Documentation
+
+For comprehensive documentation, examples, and API reference, visit:
+
+**📚 [Full Documentation](https://kenneththompson.github.io/uspto_odp/)**
+
+The documentation includes:
+- [Quick Start Guide](https://kenneththompson.github.io/uspto_odp/quickstart/) - Get up and running quickly
+- [Installation Guide](https://kenneththompson.github.io/uspto_odp/installation/) - Detailed setup instructions
+- [Examples](https://kenneththompson.github.io/uspto_odp/examples/) - Comprehensive code examples
+- [API Reference](https://kenneththompson.github.io/uspto_odp/api/client/) - Complete API documentation
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

@@ -28,6 +28,11 @@ dev = [
     "coverage",
     "python-dotenv",
 ]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.23.0",
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -47,4 +52,5 @@ testpaths = ["tests"]
 
 [project.urls]
 Homepage = "https://github.com/KennethThompson/uspto_odp"
+Documentation = "https://kenneththompson.github.io/uspto_odp/"
 Issues = "https://github.com/KennethThompson/uspto_odp/issues"
