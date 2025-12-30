@@ -55,7 +55,10 @@ async def test_search_patent_applications_download_post_success(client):
     # Execute test
     payload = {
         "q": "applicationNumberText:14412875",
-        "limit": 25
+        "pagination": {
+            "offset": 0,
+            "limit": 10
+        }
     }
     result = await client.search_patent_applications_download(payload)
     

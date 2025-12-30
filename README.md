@@ -65,17 +65,17 @@ Note: You must have an API key to use this library. You can learn more about how
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/petition/decisions/search` | GET, POST | 🚧 None | - |
-| `/api/v1/petition/decisions/search/download` | GET, POST | 🚧 None | - |
-| `/api/v1/petition/decisions/{petitionDecisionRecordIdentifier}` | GET | 🚧 None | - |
+| `/api/v1/petition/decisions/search` | GET, POST | ✅ GET, POST | `search_petition_decisions()` (POST)<br>`search_petition_decisions_get()` (GET) |
+| `/api/v1/petition/decisions/search/download` | GET, POST | ✅ GET, POST | `search_petition_decisions_download()` (POST)<br>`search_petition_decisions_download_get()` (GET) |
+| `/api/v1/petition/decisions/{petitionDecisionRecordIdentifier}` | GET | ✅ GET | `get_petition_decision()` |
 
 ## PTAB Trials - Proceedings Endpoints
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/patent/trials/proceedings/search` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/trials/proceedings/search/download` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/trials/proceedings/{trialNumber}` | GET | 🚧 None | - |
+| `/api/v1/patent/trials/proceedings/search` | GET, POST | ✅ GET, POST | `search_trial_proceedings()` (POST)<br>`search_trial_proceedings_get()` (GET) |
+| `/api/v1/patent/trials/proceedings/search/download` | GET, POST | ✅ GET, POST | `search_trial_proceedings_download()` (POST)<br>`search_trial_proceedings_download_get()` (GET) |
+| `/api/v1/patent/trials/proceedings/{trialNumber}` | GET | ✅ GET | `get_trial_proceeding()` |
 
 ## PTAB Trials - Decisions Endpoints
 
@@ -115,9 +115,9 @@ Note: You must have an API key to use this library. You can learn more about how
 
 ## Coverage Summary
 - **Total Methods Available**: 50
-- **Fully Supported**: 15 (30%)
+- **Fully Supported**: 25 (50%)
 - **Partially Supported**: 0 (0%)
-- **Not Supported**: 35 (70%)
+- **Not Supported**: 25 (50%)
 
 ## Legend
 - ✅ Fully Implemented and Available
