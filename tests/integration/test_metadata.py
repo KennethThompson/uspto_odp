@@ -114,14 +114,15 @@ async def test_get_app_metadata_from_patent_number_verify_structure(client, know
 async def test_get_app_metadata_from_patent_number_not_found(client):
     """
     Test behavior when patent number is not found.
-    Note: This may return empty results rather than None, depending on API behavior.
+    The API returns a 404 error for invalid patent numbers.
     """
     invalid_patent = "99999999"  # Likely invalid
     
-    result = await client.get_app_metadata_from_patent_number(invalid_patent)
+    # The API returns 404 for invalid patent numbers, which raises USPTOError
+    with pytest.raises(USPTOError) as exc_info:
+        await client.get_app_metadata_from_patent_number(invalid_patent)
     
-    # API may return None or empty result - both are acceptable
-    # The implementation returns None if count is 0
-    assert result is None or (isinstance(result, dict) and result.get('count', 0) == 0)
-    
-    print("✓ Correctly handled invalid patent number")
+    # Error code may be string or int depending on API response
+    assert exc_info.value.code == 404 or str(exc_info.value.code) == "404"
+    assert "404" in str(exc_info.value) or "Not Found" in str(exc_info.value)
+    print("✓ Correctly raised USPTOError for invalid patent number")
