@@ -196,6 +196,224 @@ async def main():
 asyncio.run(main())
 ```
 
+## Common Examples
+
+Here are practical examples for the most common use cases:
+
+### 1. Get Patent File Wrapper
+
+Retrieve complete patent application information including inventors, title, events, and metadata:
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def get_file_wrapper():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Get complete file wrapper for an application
+    wrapper = await client.get_patent_wrapper("14412875")
+    
+    print(f"Application Number: {wrapper.application_number}")
+    print(f"Title: {wrapper.title}")
+    print(f"Inventors: {[inv.name for inv in wrapper.inventors]}")
+    
+    # Access application events/history
+    for event in wrapper.events:
+        print(f"Event: {event.event_code} - {event.event_description}")
+    
+    await client.session.close()
+
+asyncio.run(get_file_wrapper())
+```
+
+### 2. Get Application Metadata
+
+Retrieve essential application metadata including filing date, patent number, and status:
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def get_metadata():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Get metadata by application number
+    metadata = await client.get_app_metadata("14412875")
+    
+    print(f"Application Number: {metadata.application_number}")
+    print(f"Filing Date: {metadata.metadata.filing_date}")
+    print(f"Patent Number: {metadata.metadata.patent_number}")
+    print(f"Application Type: {metadata.metadata.application_type}")
+    print(f"Status: {metadata.metadata.status}")
+    
+    await client.session.close()
+
+asyncio.run(get_metadata())
+```
+
+### 3. Search for Application Number Using Patent Number
+
+Find an application serial number when you only have a patent number:
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def find_app_from_patent():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Method 1: Use convenience method (recommended)
+    # This searches for the app number and returns metadata
+    metadata = await client.get_app_metadata_from_patent_number("9022434")
+    
+    if metadata:
+        print(f"Found Application: {metadata.application_number}")
+        print(f"Filing Date: {metadata.metadata.filing_date}")
+    else:
+        print("Patent number not found")
+    
+    # Method 2: Manual search approach
+    # Search for applications with this patent number
+    search_results = await client.search_patent_applications_get(
+        q="applicationMetaData.patentNumber:9022434",
+        limit=1
+    )
+    
+    if search_results.get('totalNumFound', 0) > 0:
+        app_data = search_results['patentFileWrapperDataBag'][0]
+        app_number = app_data.get('applicationNumberText')
+        print(f"Application Number: {app_number}")
+        
+        # Now get full metadata
+        metadata = await client.get_app_metadata(app_number)
+        print(f"Filing Date: {metadata.metadata.filing_date}")
+    
+    await client.session.close()
+
+asyncio.run(find_app_from_patent())
+```
+
+### 4. Download a Patent Document
+
+Retrieve and download documents from a patent application:
+
+```python
+import asyncio
+import os
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def download_document():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # First, get the list of documents for an application
+    app_number = "14412875"
+    documents = await client.get_patent_documents(app_number)
+    
+    print(f"Found {len(documents.documents)} documents")
+    
+    # Create download directory
+    download_dir = "./downloads"
+    os.makedirs(download_dir, exist_ok=True)
+    
+    # Download the first document as PDF
+    if documents.documents:
+        doc = documents.documents[0]
+        print(f"Downloading: {doc.document_code} - {doc.document_name}")
+        
+        # Download as PDF
+        file_path = await client.download_document(
+            document=doc,
+            save_path=download_dir,
+            mime_type="PDF"  # Options: "PDF", "MS_WORD", "XML"
+        )
+        
+        print(f"Downloaded to: {file_path}")
+        
+        # Check available formats
+        print("Available formats:")
+        for option in doc.download_options:
+            print(f"  - {option.mime_type}")
+    
+    await client.session.close()
+
+asyncio.run(download_document())
+```
+
+### 5. Advanced Search Examples
+
+Search for applications using various criteria:
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def advanced_search():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Example 1: Search by inventor name
+    results = await client.search_patent_applications_get(
+        q="applicationMetaData.inventorBag.inventorNameText:Smith",
+        limit=25
+    )
+    print(f"Found {results.get('totalNumFound', 0)} applications")
+    
+    # Example 2: Search with filters and date range
+    results = await client.search_patent_applications_get(
+        q="applicationMetaData.applicationTypeCode:UTL",
+        filters="applicationMetaData.applicationTypeCode UTL",
+        range_filters="applicationMetaData.filingDate 2020-01-01:2024-01-01",
+        sort="applicationMetaData.filingDate desc",
+        limit=50
+    )
+    print(f"Found {results.get('totalNumFound', 0)} utility applications")
+    
+    # Example 3: Search by patent number (to find application number)
+    patent_number = "12345678"
+    results = await client.search_patent_applications_get(
+        q=f"applicationMetaData.patentNumber:{patent_number}",
+        limit=1
+    )
+    
+    if results.get('totalNumFound', 0) > 0:
+        app_number = results['patentFileWrapperDataBag'][0].get('applicationNumberText')
+        print(f"Patent {patent_number} corresponds to Application {app_number}")
+    
+    await client.session.close()
+
+asyncio.run(advanced_search())
+```
+
+### Error Handling
+
+Always handle errors appropriately:
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient, USPTOError
+
+async def search_with_error_handling():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    try:
+        wrapper = await client.get_patent_wrapper("invalid-number")
+    except USPTOError as e:
+        if e.code == 404:
+            print("Application not found")
+        elif e.code == 403:
+            print("Access forbidden - check your API key")
+        elif e.code == 400:
+            print(f"Bad request: {e.error_details}")
+        else:
+            print(f"Error {e.code}: {e.error}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+    finally:
+        await client.session.close()
+
+asyncio.run(search_with_error_handling())
+```
+
 ### Documentation
 
 For comprehensive documentation, examples, and API reference, visit:
