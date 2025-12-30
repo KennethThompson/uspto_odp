@@ -115,9 +115,9 @@ Note: You must have an API key to use this library. You can learn more about how
 
 ## Coverage Summary
 - **Total Methods Available**: 53
-- **Fully Supported**: 49 (92%)
+- **Fully Supported**: 53 (100%)
 - **Partially Supported**: 0 (0%)
-- **Not Supported**: 4 (8%)
+- **Not Supported**: 0 (0%)
 
 ## Legend
 - ✅ Fully Implemented and Available
