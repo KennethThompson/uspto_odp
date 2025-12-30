@@ -70,7 +70,7 @@ class USPTOError(Exception):
 class USPTOClient:
     """Async client for USPTO Patent Application API"""
     
-    BASE_URL = "https://api.uspto.gov/api/v1/patent/applications"
+    BASE_API_URL = "https://api.uspto.gov/api"
 
     def __init__(self, api_key: str, session: Optional[aiohttp.ClientSession] = None):
         self.API_KEY = api_key
@@ -79,6 +79,58 @@ class USPTOClient:
             "X-API-KEY": self.API_KEY
         }
         self.session = session or aiohttp.ClientSession()
+
+    @property
+    def _patent_applications_endpoint(self) -> str:
+        """
+        Patent Applications service endpoint.
+        Base path: /v1/patent/applications
+        """
+        return f"{self.BASE_API_URL}/v1/patent/applications"
+
+    @property
+    def _bulk_data_endpoint(self) -> str:
+        """
+        Bulk Data service endpoint (for future implementation).
+        Base path: /v1/bulkdata
+        """
+        return f"{self.BASE_API_URL}/v1/bulkdata"
+
+    @property
+    def _petition_decisions_endpoint(self) -> str:
+        """
+        Petition Decisions service endpoint (for future implementation).
+        Base path: /v1/petitions/decisions
+        """
+        return f"{self.BASE_API_URL}/v1/petitions/decisions"
+
+    @property
+    def _ptab_trials_endpoint(self) -> str:
+        """
+        PTAB Trials service endpoint (for future implementation).
+        Base path: /v1/ptab/trials
+        """
+        return f"{self.BASE_API_URL}/v1/ptab/trials"
+
+    def _build_url(self, service_endpoint: str, *path_segments: str) -> str:
+        """
+        Build a full URL from a service endpoint and additional path segments.
+        
+        Args:
+            service_endpoint: The base service endpoint (e.g., from _patent_applications_endpoint)
+            *path_segments: Additional path segments to append
+            
+        Returns:
+            str: Complete URL
+            
+        Example:
+            url = self._build_url(self._patent_applications_endpoint, "12345678", "documents")
+            # Returns: https://api.uspto.gov/api/v1/patent/applications/12345678/documents
+        """
+        path = "/".join(str(segment) for segment in path_segments if segment)
+        if path:
+            return f"{service_endpoint}/{path}"
+        return service_endpoint
 
     async def _handle_response(self, response, parse_func):
         try:
@@ -136,13 +188,13 @@ class USPTOClient:
                 standardized = f"PCT{country}{year}{number}"
                 
                 try:
-                    url = f"{self.BASE_URL}/{standardized}"
+                    url = self._build_url(self._patent_applications_endpoint, standardized)
                     async with self.session.get(url, headers=self.headers) as response:
                         if response.status == 404 and number.startswith('0'):
                             # If 404 and has leading zero, try without it
                             number_no_zero = str(int(number))
                             standardized = f"PCT{country}{year}{number_no_zero}"
-                            url = f"{self.BASE_URL}/{standardized}"
+                            url = self._build_url(self._patent_applications_endpoint, standardized)
                             async with self.session.get(url, headers=self.headers) as retry_response:
                                 return await self._handle_response(retry_response, PatentFileWrapper.parse_response)
                         return await self._handle_response(response, PatentFileWrapper.parse_response)
@@ -152,7 +204,7 @@ class USPTOClient:
             else:
                 raise ValueError(f"Invalid PCT application number format: {serial_number}")
         
-        url = f"{self.BASE_URL}/{serial_number}"
+        url = self._build_url(self._patent_applications_endpoint, serial_number)
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, PatentFileWrapper.parse_response)
 
@@ -169,7 +221,7 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
-        url = f"{self.BASE_URL}/{serial_number}/documents"
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "documents")
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, PatentDocumentCollection.from_dict)
 
@@ -254,7 +306,7 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
-        url = f"{self.BASE_URL}/{serial_number}/continuity"
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "continuity")
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, ContinuityCollection.from_dict)
 
@@ -271,7 +323,7 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
-        url = f"{self.BASE_URL}/{serial_number}/foreign-priority"
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "foreign-priority")
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, ForeignPriorityCollection.from_dict)
 
@@ -288,7 +340,7 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
-        url = f"{self.BASE_URL}/{serial_number}/transactions"
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "transactions")
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, TransactionCollection.from_dict)
 
@@ -305,7 +357,7 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails
         """
-        url = f"{self.BASE_URL}/{serial_number}/assignment"
+        url = self._build_url(self._patent_applications_endpoint, serial_number, "assignment")
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, AssignmentCollection.from_dict)
 
@@ -325,7 +377,7 @@ class USPTOClient:
         Raises:
             USPTOError: If the API request fails (400, 403, 404, 413, 500)
         """
-        url = f"{self.BASE_URL}/search"
+        url = self._build_url(self._patent_applications_endpoint, "search")
         async with self.session.post(url, json=payload, headers=self.headers) as response:
             return await self._handle_response(response, lambda x: x)  # Return raw JSON response
 
@@ -381,7 +433,7 @@ class USPTOClient:
                 limit=100
             )
         """
-        url = f"{self.BASE_URL}/search"
+        url = self._build_url(self._patent_applications_endpoint, "search")
 
         # Build query parameters, only including non-None values
         params = {}

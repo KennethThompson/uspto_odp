@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-def pytest_configure():
+def pytest_configure(config):
     # Get the absolute path to src directory
     src_path = str(Path(__file__).parent.parent.absolute() / "src")
     print(f"Adding src path: {src_path}")
@@ -18,5 +18,8 @@ def pytest_configure():
         print(f"uspto_odp location: {uspto_odp.__file__}")
     except ImportError as e:
         print(f"Import error: {e}")
+    
+    # Register custom markers
+    config.addinivalue_line("markers", "integration: marks tests as integration tests (requires USPTO_API_KEY)")
 
 pytest_plugins = ["pytest_asyncio"]
