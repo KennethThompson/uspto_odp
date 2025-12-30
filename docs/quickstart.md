@@ -178,6 +178,17 @@ asyncio.run(convenience_example())
 
 ## Next Steps
 
+- Explore **[Endpoint Documentation](endpoints/patent-applications/index.md)** - Detailed guides for each endpoint with examples
 - Check out [Examples](examples.md) for more comprehensive examples
 - Review the [API Reference](api/client.md) for all available methods
 - Read about [Contributing](contributing.md) if you want to help improve the library
+
+### Browse Endpoints
+
+Each endpoint category has comprehensive documentation:
+
+- **[Patent Applications](endpoints/patent-applications/index.md)** - Search, metadata, documents, and more
+- **[Status Codes](endpoints/status-codes/index.md)** - Look up status codes
+- **[Bulk Datasets](endpoints/bulk-datasets/index.md)** - Access bulk data
+- **[Petition Decisions](endpoints/petition-decisions/index.md)** - Petition decision records
+- **[PTAB Endpoints](endpoints/trials-proceedings/index.md)** - Trials, appeals, and interferences

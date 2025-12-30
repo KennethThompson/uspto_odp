@@ -76,8 +76,23 @@ pip install -e ".[dev]"
 
 - **[Quick Start Guide](quickstart.md)** - Get up and running quickly
 - **[Installation Guide](installation.md)** - Detailed installation instructions
+- **[Endpoint Documentation](endpoints/patent-applications/index.md)** - Comprehensive endpoint guides with detailed examples
 - **[Examples](examples.md)** - Comprehensive code examples
 - **[API Reference](api/client.md)** - Complete API documentation
+
+### Endpoint Categories
+
+Browse detailed documentation for each endpoint category:
+
+- **[Patent Applications](endpoints/patent-applications/index.md)** - 12 endpoints for patent application data
+- **[Status Codes](endpoints/status-codes/index.md)** - Status code lookup
+- **[Bulk Datasets](endpoints/bulk-datasets/index.md)** - Access bulk data products
+- **[Petition Decisions](endpoints/petition-decisions/index.md)** - Petition decision records
+- **[PTAB Trials - Proceedings](endpoints/trials-proceedings/index.md)** - Trial proceeding information
+- **[PTAB Trials - Decisions](endpoints/trials-decisions/index.md)** - Trial decision documents
+- **[PTAB Trials - Documents](endpoints/trials-documents/index.md)** - Trial documents
+- **[PTAB Appeals - Decisions](endpoints/appeals-decisions/index.md)** - Appeal decision documents
+- **[PTAB Interferences - Decisions](endpoints/interferences-decisions/index.md)** - Interference decision documents
 
 ## License
 

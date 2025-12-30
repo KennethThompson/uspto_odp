@@ -66,6 +66,63 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Quick Start: quickstart.md
+  - Endpoints:
+    - Patent Applications:
+      - Overview: endpoints/patent-applications/index.md
+      - Search: endpoints/patent-applications/search.md
+      - Search/Download: endpoints/patent-applications/search-download.md
+      - Get Patent Wrapper: endpoints/patent-applications/get-patent-wrapper.md
+      - Metadata: endpoints/patent-applications/metadata.md
+      - Adjustment: endpoints/patent-applications/adjustment.md
+      - Assignment: endpoints/patent-applications/assignment.md
+      - Attorney: endpoints/patent-applications/attorney.md
+      - Continuity: endpoints/patent-applications/continuity.md
+      - Foreign Priority: endpoints/patent-applications/foreign-priority.md
+      - Transactions: endpoints/patent-applications/transactions.md
+      - Documents: endpoints/patent-applications/documents.md
+      - Associated Documents: endpoints/patent-applications/associated-documents.md
+    - Status Codes:
+      - Overview: endpoints/status-codes/index.md
+      - Search: endpoints/status-codes/search.md
+    - Bulk Datasets:
+      - Overview: endpoints/bulk-datasets/index.md
+      - Search Products: endpoints/bulk-datasets/search-products.md
+      - Get Product: endpoints/bulk-datasets/get-product.md
+      - Get File: endpoints/bulk-datasets/get-file.md
+    - Petition Decisions:
+      - Overview: endpoints/petition-decisions/index.md
+      - Search: endpoints/petition-decisions/search.md
+      - Search/Download: endpoints/petition-decisions/search-download.md
+      - Get Decision: endpoints/petition-decisions/get-decision.md
+    - PTAB Trials - Proceedings:
+      - Overview: endpoints/trials-proceedings/index.md
+      - Search: endpoints/trials-proceedings/search.md
+      - Search/Download: endpoints/trials-proceedings/search-download.md
+      - Get Proceeding: endpoints/trials-proceedings/get-proceeding.md
+    - PTAB Trials - Decisions:
+      - Overview: endpoints/trials-decisions/index.md
+      - Search: endpoints/trials-decisions/search.md
+      - Search/Download: endpoints/trials-decisions/search-download.md
+      - Get Decision: endpoints/trials-decisions/get-decision.md
+      - Get Decisions by Trial: endpoints/trials-decisions/get-decisions-by-trial.md
+    - PTAB Trials - Documents:
+      - Overview: endpoints/trials-documents/index.md
+      - Search: endpoints/trials-documents/search.md
+      - Search/Download: endpoints/trials-documents/search-download.md
+      - Get Document: endpoints/trials-documents/get-document.md
+      - Get Documents by Trial: endpoints/trials-documents/get-documents-by-trial.md
+    - PTAB Appeals - Decisions:
+      - Overview: endpoints/appeals-decisions/index.md
+      - Search: endpoints/appeals-decisions/search.md
+      - Search/Download: endpoints/appeals-decisions/search-download.md
+      - Get Decision: endpoints/appeals-decisions/get-decision.md
+      - Get Decisions by Appeal: endpoints/appeals-decisions/get-decisions-by-appeal.md
+    - PTAB Interferences - Decisions:
+      - Overview: endpoints/interferences-decisions/index.md
+      - Search: endpoints/interferences-decisions/search.md
+      - Search/Download: endpoints/interferences-decisions/search-download.md
+      - Get Decision: endpoints/interferences-decisions/get-decision.md
+      - Get Decisions by Interference: endpoints/interferences-decisions/get-decisions-by-interference.md
   - Examples: examples.md
   - API Reference:
     - Client: api/client.md
