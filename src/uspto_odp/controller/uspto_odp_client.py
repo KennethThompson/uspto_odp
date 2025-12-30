@@ -40,6 +40,11 @@ from uspto_odp.models.patent_associated_documents import AssociatedDocumentsResp
 from uspto_odp.models.patent_search_download import PatentDataResponse
 from uspto_odp.models.patent_petition_decision import PetitionDecisionResponseBag, PetitionDecisionIdentifierResponseBag
 from uspto_odp.models.patent_trials_proceedings import TrialProceedingResponseBag, TrialProceedingIdentifierResponseBag
+from uspto_odp.models.patent_trials_decisions import TrialDecisionResponseBag, TrialDecisionIdentifierResponseBag, TrialDecisionByTrialResponseBag
+from uspto_odp.models.patent_trials_documents import TrialDocumentResponseBag, TrialDocumentIdentifierResponseBag, TrialDocumentByTrialResponseBag
+from uspto_odp.models.patent_appeals_decisions import AppealDecisionResponseBag, AppealDecisionIdentifierResponseBag, AppealDecisionByAppealResponseBag
+from uspto_odp.models.patent_interferences_decisions import InterferenceDecisionResponseBag, InterferenceDecisionIdentifierResponseBag, InterferenceDecisionByInterferenceResponseBag
+from uspto_odp.models.bulk_datasets import DatasetProductSearchResponseBag, DatasetProductResponseBag, DatasetFileResponseBag
 import os
 import re
 try:
@@ -105,6 +110,14 @@ class USPTOClient:
         return f"{self.BASE_API_URL}/v1/bulkdata"
 
     @property
+    def _bulk_datasets_endpoint(self) -> str:
+        """
+        Bulk Datasets service endpoint.
+        Base path: /v1/datasets/products
+        """
+        return f"{self.BASE_API_URL}/v1/datasets/products"
+
+    @property
     def _petition_decisions_endpoint(self) -> str:
         """
         Petition Decisions service endpoint.
@@ -127,6 +140,38 @@ class USPTOClient:
         Base path: /v1/patent/trials/proceedings
         """
         return f"{self.BASE_API_URL}/v1/patent/trials/proceedings"
+
+    @property
+    def _ptab_trials_decisions_endpoint(self) -> str:
+        """
+        PTAB Trials Decisions service endpoint.
+        Base path: /v1/patent/trials/decisions
+        """
+        return f"{self.BASE_API_URL}/v1/patent/trials/decisions"
+
+    @property
+    def _ptab_trials_documents_endpoint(self) -> str:
+        """
+        PTAB Trials Documents service endpoint.
+        Base path: /v1/patent/trials/documents
+        """
+        return f"{self.BASE_API_URL}/v1/patent/trials/documents"
+
+    @property
+    def _ptab_appeals_decisions_endpoint(self) -> str:
+        """
+        PTAB Appeals Decisions service endpoint.
+        Base path: /v1/patent/appeals/decisions
+        """
+        return f"{self.BASE_API_URL}/v1/patent/appeals/decisions"
+
+    @property
+    def _ptab_interferences_decisions_endpoint(self) -> str:
+        """
+        PTAB Interferences Decisions service endpoint.
+        Base path: /v1/patent/interferences/decisions
+        """
+        return f"{self.BASE_API_URL}/v1/patent/interferences/decisions"
 
     @property
     def _status_codes_endpoint(self) -> str:
@@ -1034,6 +1079,1027 @@ class USPTOClient:
 
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, TrialProceedingIdentifierResponseBag.from_dict)
+
+    async def search_trial_decisions(self, payload: dict) -> TrialDecisionResponseBag:
+        """
+        Search trial decisions using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/trials/decisions/search
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+                           Can include fields like query text, sort options, filters, pagination, etc.
+
+        Returns:
+            TrialDecisionResponseBag: The search response containing trial decision results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_trials_decisions_endpoint, "search")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDecisionResponseBag.from_dict)
+
+    async def search_trial_decisions_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None
+    ) -> TrialDecisionResponseBag:
+        """
+        Search trial decisions using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/trials/decisions/search
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'trialType:IPR'
+            sort (str, optional): Field to sort by followed by order. Example: 'decisionDate desc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'decisionDate 2021-01-01:2025-01-01'
+
+        Returns:
+            TrialDecisionResponseBag: The search response containing trial decision results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Search for IPR trial decisions
+            results = await client.search_trial_decisions_get(q='IPR')
+
+            # Search with filters and pagination
+            results = await client.search_trial_decisions_get(
+                q='IPR',
+                filters='decisionType Final',
+                limit=50,
+                offset=0
+            )
+        """
+        url = self._build_url(self._ptab_trials_decisions_endpoint, "search")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDecisionResponseBag.from_dict)
+
+    async def search_trial_decisions_download(self, payload: dict) -> TrialDecisionResponseBag:
+        """
+        Download trial decision search results using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/trials/decisions/search/download
+
+        This endpoint is similar to search_trial_decisions but optimized for downloads.
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+
+        Returns:
+            TrialDecisionResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_trials_decisions_endpoint, "search", "download")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDecisionResponseBag.from_dict)
+
+    async def search_trial_decisions_download_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None,
+        format: Optional[str] = None
+    ) -> TrialDecisionResponseBag:
+        """
+        Download trial decision search results using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/trials/decisions/search/download
+
+        This endpoint is similar to search_trial_decisions_get but optimized for downloads.
+        Supports a format parameter for download format (json or csv).
+
+        Args:
+            q (str, optional): Search query string.
+            sort (str, optional): Field to sort by followed by order.
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+            format (str, optional): Download format. Options: 'json' or 'csv'. Default: 'json'
+
+        Returns:
+            TrialDecisionResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Download search results in JSON format
+            results = await client.search_trial_decisions_download_get(q='IPR', format='json')
+
+            # Download search results in CSV format
+            results = await client.search_trial_decisions_download_get(q='IPR', format='csv', limit=100)
+        """
+        url = self._build_url(self._ptab_trials_decisions_endpoint, "search", "download")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+        if format is not None:
+            params['format'] = format
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDecisionResponseBag.from_dict)
+
+    async def get_trial_decision(self, document_identifier: str) -> TrialDecisionIdentifierResponseBag:
+        """
+        Retrieve a specific trial decision by its document identifier.
+
+        Endpoint: GET /api/v1/patent/trials/decisions/{documentIdentifier}
+
+        Args:
+            document_identifier (str): The trial decision document identifier
+
+        Returns:
+            TrialDecisionIdentifierResponseBag: The trial decision data
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get trial decision by document identifier
+            decision = await client.get_trial_decision('DOC-12345')
+        """
+        url = self._build_url(self._ptab_trials_decisions_endpoint, document_identifier)
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDecisionIdentifierResponseBag.from_dict)
+
+    async def get_trial_decisions_by_trial(self, trial_number: str) -> TrialDecisionByTrialResponseBag:
+        """
+        Retrieve all trial decisions for a specific trial number.
+
+        Endpoint: GET /api/v1/patent/trials/{trialNumber}/decisions
+
+        Args:
+            trial_number (str): The trial number identifier (e.g., "IPR2020-00001")
+
+        Returns:
+            TrialDecisionByTrialResponseBag: The trial decisions data for the specified trial
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get all decisions for a trial
+            decisions = await client.get_trial_decisions_by_trial('IPR2020-00001')
+        """
+        # Build URL: /api/v1/patent/trials/{trialNumber}/decisions
+        url = self._build_url(
+            f"{self.BASE_API_URL}/v1/patent/trials",
+            trial_number,
+            "decisions"
+        )
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDecisionByTrialResponseBag.from_dict)
+
+    async def search_trial_documents(self, payload: dict) -> TrialDocumentResponseBag:
+        """
+        Search trial documents using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/trials/documents/search
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+                           Can include fields like query text, sort options, filters, pagination, etc.
+
+        Returns:
+            TrialDocumentResponseBag: The search response containing trial document results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_trials_documents_endpoint, "search")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDocumentResponseBag.from_dict)
+
+    async def search_trial_documents_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None
+    ) -> TrialDocumentResponseBag:
+        """
+        Search trial documents using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/trials/documents/search
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'trialType:IPR'
+            sort (str, optional): Field to sort by followed by order. Example: 'documentDate desc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'documentDate 2021-01-01:2025-01-01'
+
+        Returns:
+            TrialDocumentResponseBag: The search response containing trial document results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Search for IPR trial documents
+            results = await client.search_trial_documents_get(q='IPR')
+
+            # Search with filters and pagination
+            results = await client.search_trial_documents_get(
+                q='IPR',
+                filters='documentType Petition',
+                limit=50,
+                offset=0
+            )
+        """
+        url = self._build_url(self._ptab_trials_documents_endpoint, "search")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDocumentResponseBag.from_dict)
+
+    async def search_trial_documents_download(self, payload: dict) -> TrialDocumentResponseBag:
+        """
+        Download trial document search results using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/trials/documents/search/download
+
+        This endpoint is similar to search_trial_documents but optimized for downloads.
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+
+        Returns:
+            TrialDocumentResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_trials_documents_endpoint, "search", "download")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDocumentResponseBag.from_dict)
+
+    async def search_trial_documents_download_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None,
+        format: Optional[str] = None
+    ) -> TrialDocumentResponseBag:
+        """
+        Download trial document search results using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/trials/documents/search/download
+
+        This endpoint is similar to search_trial_documents_get but optimized for downloads.
+        Supports a format parameter for download format (json or csv).
+
+        Args:
+            q (str, optional): Search query string.
+            sort (str, optional): Field to sort by followed by order.
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+            format (str, optional): Download format. Options: 'json' or 'csv'. Default: 'json'
+
+        Returns:
+            TrialDocumentResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Download search results in JSON format
+            results = await client.search_trial_documents_download_get(q='IPR', format='json')
+
+            # Download search results in CSV format
+            results = await client.search_trial_documents_download_get(q='IPR', format='csv', limit=100)
+        """
+        url = self._build_url(self._ptab_trials_documents_endpoint, "search", "download")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+        if format is not None:
+            params['format'] = format
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDocumentResponseBag.from_dict)
+
+    async def get_trial_document(self, document_identifier: str) -> TrialDocumentIdentifierResponseBag:
+        """
+        Retrieve a specific trial document by its document identifier.
+
+        Endpoint: GET /api/v1/patent/trials/documents/{documentIdentifier}
+
+        Args:
+            document_identifier (str): The trial document identifier
+
+        Returns:
+            TrialDocumentIdentifierResponseBag: The trial document data
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get trial document by document identifier
+            document = await client.get_trial_document('DOC-12345')
+        """
+        url = self._build_url(self._ptab_trials_documents_endpoint, document_identifier)
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDocumentIdentifierResponseBag.from_dict)
+
+    async def get_trial_documents_by_trial(self, trial_number: str) -> TrialDocumentByTrialResponseBag:
+        """
+        Retrieve all trial documents for a specific trial number.
+
+        Endpoint: GET /api/v1/patent/trials/{trialNumber}/documents
+
+        Args:
+            trial_number (str): The trial number identifier (e.g., "IPR2020-00001")
+
+        Returns:
+            TrialDocumentByTrialResponseBag: The trial documents data for the specified trial
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get all documents for a trial
+            documents = await client.get_trial_documents_by_trial('IPR2020-00001')
+        """
+        # Build URL: /api/v1/patent/trials/{trialNumber}/documents
+        url = self._build_url(
+            f"{self.BASE_API_URL}/v1/patent/trials",
+            trial_number,
+            "documents"
+        )
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, TrialDocumentByTrialResponseBag.from_dict)
+
+    async def search_appeal_decisions(self, payload: dict) -> AppealDecisionResponseBag:
+        """
+        Search appeal decisions using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/appeals/decisions/search
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+                           Can include fields like query text, sort options, filters, pagination, etc.
+
+        Returns:
+            AppealDecisionResponseBag: The search response containing appeal decision results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_appeals_decisions_endpoint, "search")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, AppealDecisionResponseBag.from_dict)
+
+    async def search_appeal_decisions_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None
+    ) -> AppealDecisionResponseBag:
+        """
+        Search appeal decisions using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/appeals/decisions/search
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'decisionType:Final'
+            sort (str, optional): Field to sort by followed by order. Example: 'decisionDate desc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'decisionDate 2021-01-01:2025-01-01'
+
+        Returns:
+            AppealDecisionResponseBag: The search response containing appeal decision results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Search for appeal decisions
+            results = await client.search_appeal_decisions_get(q='Final')
+
+            # Search with filters and pagination
+            results = await client.search_appeal_decisions_get(
+                q='Final',
+                filters='decisionType Final',
+                limit=50,
+                offset=0
+            )
+        """
+        url = self._build_url(self._ptab_appeals_decisions_endpoint, "search")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, AppealDecisionResponseBag.from_dict)
+
+    async def search_appeal_decisions_download(self, payload: dict) -> AppealDecisionResponseBag:
+        """
+        Download appeal decision search results using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/appeals/decisions/search/download
+
+        This endpoint is similar to search_appeal_decisions but optimized for downloads.
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+
+        Returns:
+            AppealDecisionResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_appeals_decisions_endpoint, "search", "download")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, AppealDecisionResponseBag.from_dict)
+
+    async def search_appeal_decisions_download_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None,
+        format: Optional[str] = None
+    ) -> AppealDecisionResponseBag:
+        """
+        Download appeal decision search results using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/appeals/decisions/search/download
+
+        This endpoint is similar to search_appeal_decisions_get but optimized for downloads.
+        Supports a format parameter for download format (json or csv).
+
+        Args:
+            q (str, optional): Search query string.
+            sort (str, optional): Field to sort by followed by order.
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+            format (str, optional): Download format. Options: 'json' or 'csv'. Default: 'json'
+
+        Returns:
+            AppealDecisionResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Download search results in JSON format
+            results = await client.search_appeal_decisions_download_get(q='Final', format='json')
+
+            # Download search results in CSV format
+            results = await client.search_appeal_decisions_download_get(q='Final', format='csv', limit=100)
+        """
+        url = self._build_url(self._ptab_appeals_decisions_endpoint, "search", "download")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+        if format is not None:
+            params['format'] = format
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, AppealDecisionResponseBag.from_dict)
+
+    async def get_appeal_decision(self, document_identifier: str) -> AppealDecisionIdentifierResponseBag:
+        """
+        Retrieve a specific appeal decision by its document identifier.
+
+        Endpoint: GET /api/v1/patent/appeals/decisions/{documentIdentifier}
+
+        Args:
+            document_identifier (str): The appeal decision document identifier
+
+        Returns:
+            AppealDecisionIdentifierResponseBag: The appeal decision data
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get appeal decision by document identifier
+            decision = await client.get_appeal_decision('DOC-12345')
+        """
+        url = self._build_url(self._ptab_appeals_decisions_endpoint, document_identifier)
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, AppealDecisionIdentifierResponseBag.from_dict)
+
+    async def get_appeal_decisions_by_appeal(self, appeal_number: str) -> AppealDecisionByAppealResponseBag:
+        """
+        Retrieve all appeal decisions for a specific appeal number.
+
+        Endpoint: GET /api/v1/patent/appeals/{appealNumber}/decisions
+
+        Args:
+            appeal_number (str): The appeal number identifier (e.g., "2020-001234")
+
+        Returns:
+            AppealDecisionByAppealResponseBag: The appeal decisions data for the specified appeal
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get all decisions for an appeal
+            decisions = await client.get_appeal_decisions_by_appeal('2020-001234')
+        """
+        # Build URL: /api/v1/patent/appeals/{appealNumber}/decisions
+        url = self._build_url(
+            f"{self.BASE_API_URL}/v1/patent/appeals",
+            appeal_number,
+            "decisions"
+        )
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, AppealDecisionByAppealResponseBag.from_dict)
+
+    async def search_interference_decisions(self, payload: dict) -> InterferenceDecisionResponseBag:
+        """
+        Search interference decisions using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/interferences/decisions/search
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+                           Can include fields like query text, sort options, filters, pagination, etc.
+
+        Returns:
+            InterferenceDecisionResponseBag: The search response containing interference decision results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_interferences_decisions_endpoint, "search")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, InterferenceDecisionResponseBag.from_dict)
+
+    async def search_interference_decisions_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None
+    ) -> InterferenceDecisionResponseBag:
+        """
+        Search interference decisions using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/interferences/decisions/search
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'decisionType:Final'
+            sort (str, optional): Field to sort by followed by order. Example: 'decisionDate desc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'decisionDate 2021-01-01:2025-01-01'
+
+        Returns:
+            InterferenceDecisionResponseBag: The search response containing interference decision results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Search for interference decisions
+            results = await client.search_interference_decisions_get(q='Final')
+
+            # Search with filters and pagination
+            results = await client.search_interference_decisions_get(
+                q='Final',
+                filters='decisionType Final',
+                limit=50,
+                offset=0
+            )
+        """
+        url = self._build_url(self._ptab_interferences_decisions_endpoint, "search")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, InterferenceDecisionResponseBag.from_dict)
+
+    async def search_interference_decisions_download(self, payload: dict) -> InterferenceDecisionResponseBag:
+        """
+        Download interference decision search results using a JSON payload (POST method).
+
+        Endpoint: POST /api/v1/patent/interferences/decisions/search/download
+
+        This endpoint is similar to search_interference_decisions but optimized for downloads.
+
+        Args:
+            payload (dict): The search criteria as a JSON-compatible dictionary.
+
+        Returns:
+            InterferenceDecisionResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+        """
+        url = self._build_url(self._ptab_interferences_decisions_endpoint, "search", "download")
+        async with self.session.post(url, json=payload, headers=self.headers) as response:
+            return await self._handle_response(response, InterferenceDecisionResponseBag.from_dict)
+
+    async def search_interference_decisions_download_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None,
+        format: Optional[str] = None
+    ) -> InterferenceDecisionResponseBag:
+        """
+        Download interference decision search results using query parameters (GET method).
+
+        Endpoint: GET /api/v1/patent/interferences/decisions/search/download
+
+        This endpoint is similar to search_interference_decisions_get but optimized for downloads.
+        Supports a format parameter for download format (json or csv).
+
+        Args:
+            q (str, optional): Search query string.
+            sort (str, optional): Field to sort by followed by order.
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+            format (str, optional): Download format. Options: 'json' or 'csv'. Default: 'json'
+
+        Returns:
+            InterferenceDecisionResponseBag: The download response containing search results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Download search results in JSON format
+            results = await client.search_interference_decisions_download_get(q='Final', format='json')
+
+            # Download search results in CSV format
+            results = await client.search_interference_decisions_download_get(q='Final', format='csv', limit=100)
+        """
+        url = self._build_url(self._ptab_interferences_decisions_endpoint, "search", "download")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+        if format is not None:
+            params['format'] = format
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, InterferenceDecisionResponseBag.from_dict)
+
+    async def get_interference_decision(self, document_identifier: str) -> InterferenceDecisionIdentifierResponseBag:
+        """
+        Retrieve a specific interference decision by its document identifier.
+
+        Endpoint: GET /api/v1/patent/interferences/decisions/{documentIdentifier}
+
+        Args:
+            document_identifier (str): The interference decision document identifier
+
+        Returns:
+            InterferenceDecisionIdentifierResponseBag: The interference decision data
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get interference decision by document identifier
+            decision = await client.get_interference_decision('DOC-12345')
+        """
+        url = self._build_url(self._ptab_interferences_decisions_endpoint, document_identifier)
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, InterferenceDecisionIdentifierResponseBag.from_dict)
+
+    async def get_interference_decisions_by_interference(self, interference_number: str) -> InterferenceDecisionByInterferenceResponseBag:
+        """
+        Retrieve all interference decisions for a specific interference number.
+
+        Endpoint: GET /api/v1/patent/interferences/{interferenceNumber}/decisions
+
+        Args:
+            interference_number (str): The interference number identifier (e.g., "106,001")
+
+        Returns:
+            InterferenceDecisionByInterferenceResponseBag: The interference decisions data for the specified interference
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get all decisions for an interference
+            decisions = await client.get_interference_decisions_by_interference('106,001')
+        """
+        # Build URL: /api/v1/patent/interferences/{interferenceNumber}/decisions
+        url = self._build_url(
+            f"{self.BASE_API_URL}/v1/patent/interferences",
+            interference_number,
+            "decisions"
+        )
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, InterferenceDecisionByInterferenceResponseBag.from_dict)
+
+    async def search_dataset_products_get(
+        self,
+        q: Optional[str] = None,
+        sort: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        facets: Optional[str] = None,
+        fields: Optional[str] = None,
+        filters: Optional[str] = None,
+        range_filters: Optional[str] = None
+    ) -> DatasetProductSearchResponseBag:
+        """
+        Search dataset products using query parameters (GET method).
+
+        Endpoint: GET /api/v1/datasets/products/search
+
+        Args:
+            q (str, optional): Search query string. Accepts boolean operators (AND, OR, NOT),
+                              wildcards (*), and exact phrases (""). Example: 'productType:Patent'
+            sort (str, optional): Field to sort by followed by order. Example: 'releaseDate desc'
+            offset (int, optional): Position in dataset to start from. Default: 0
+            limit (int, optional): Number of results to return. Default: 25
+            facets (str, optional): Comma-separated list of fields to facet.
+            fields (str, optional): Comma-separated list of fields to include in response.
+            filters (str, optional): Filter by field value. Format: 'fieldName value1,value2'
+            range_filters (str, optional): Filter by range. Format: 'fieldName min:max'
+                                          Example: 'releaseDate 2021-01-01:2025-01-01'
+
+        Returns:
+            DatasetProductSearchResponseBag: The search response containing dataset product results
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Search for dataset products
+            results = await client.search_dataset_products_get(q='Patent')
+
+            # Search with filters and pagination
+            results = await client.search_dataset_products_get(
+                q='Patent',
+                filters='productType Patent',
+                limit=50,
+                offset=0
+            )
+        """
+        url = self._build_url(self._bulk_datasets_endpoint, "search")
+        params = {}
+        if q is not None:
+            params['q'] = q
+        if sort is not None:
+            params['sort'] = sort
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if facets is not None:
+            params['facets'] = facets
+        if fields is not None:
+            params['fields'] = fields
+        if filters is not None:
+            params['filters'] = filters
+        if range_filters is not None:
+            params['rangeFilters'] = range_filters
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
+            return await self._handle_response(response, DatasetProductSearchResponseBag.from_dict)
+
+    async def get_dataset_product(self, product_identifier: str) -> DatasetProductResponseBag:
+        """
+        Retrieve a specific dataset product by its product identifier.
+
+        Endpoint: GET /api/v1/datasets/products/{productIdentifier}
+
+        Args:
+            product_identifier (str): The dataset product identifier
+
+        Returns:
+            DatasetProductResponseBag: The dataset product data
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get dataset product by product identifier
+            product = await client.get_dataset_product('product-12345')
+        """
+        url = self._build_url(self._bulk_datasets_endpoint, product_identifier)
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, DatasetProductResponseBag.from_dict)
+
+    async def get_dataset_file(self, product_identifier: str, file_name: str) -> DatasetFileResponseBag:
+        """
+        Retrieve a specific dataset file by product identifier and file name.
+
+        Endpoint: GET /api/v1/datasets/products/files/{productIdentifier}/{fileName}
+
+        Args:
+            product_identifier (str): The dataset product identifier
+            file_name (str): The file name within the product
+
+        Returns:
+            DatasetFileResponseBag: The dataset file data (may contain download URL or metadata)
+
+        Raises:
+            USPTOError: If the API request fails (400, 403, 404, 500)
+
+        Examples:
+            # Get dataset file by product identifier and file name
+            file_info = await client.get_dataset_file('product-12345', 'data.csv')
+        """
+        url = self._build_url(self._bulk_datasets_endpoint, "files", product_identifier, file_name)
+
+        async with self.session.get(url, headers=self.headers) as response:
+            return await self._handle_response(response, DatasetFileResponseBag.from_dict)
 
     async def get_app_metadata(self, application_number: str) -> ApplicationMetadataResponse:
         """

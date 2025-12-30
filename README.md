@@ -57,9 +57,9 @@ Note: You must have an API key to use this library. You can learn more about how
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/datasets/products/search` | GET | 🚧 None | - |
-| `/api/v1/datasets/products/{productIdentifier}` | GET | 🚧 None | - |
-| `/api/v1/datasets/products/files/{productIdentifier}/{fileName}` | GET | 🚧 None | - |
+| `/api/v1/datasets/products/search` | GET | ✅ GET | `search_dataset_products_get()` |
+| `/api/v1/datasets/products/{productIdentifier}` | GET | ✅ GET | `get_dataset_product()` |
+| `/api/v1/datasets/products/files/{productIdentifier}/{fileName}` | GET | ✅ GET | `get_dataset_file()` |
 
 ## Petition Decisions Endpoints
 
@@ -81,43 +81,43 @@ Note: You must have an API key to use this library. You can learn more about how
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/patent/trials/decisions/search` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/trials/decisions/search/download` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/trials/decisions/{documentIdentifier}` | GET | 🚧 None | - |
-| `/api/v1/patent/trials/{trialNumber}/decisions` | GET | 🚧 None | - |
+| `/api/v1/patent/trials/decisions/search` | GET, POST | ✅ GET, POST | `search_trial_decisions()` (POST)<br>`search_trial_decisions_get()` (GET) |
+| `/api/v1/patent/trials/decisions/search/download` | GET, POST | ✅ GET, POST | `search_trial_decisions_download()` (POST)<br>`search_trial_decisions_download_get()` (GET) |
+| `/api/v1/patent/trials/decisions/{documentIdentifier}` | GET | ✅ GET | `get_trial_decision()` |
+| `/api/v1/patent/trials/{trialNumber}/decisions` | GET | ✅ GET | `get_trial_decisions_by_trial()` |
 
 ## PTAB Trials - Documents Endpoints
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/patent/trials/documents/search` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/trials/documents/search/download` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/trials/documents/{documentIdentifier}` | GET | 🚧 None | - |
-| `/api/v1/patent/trials/{trialNumber}/documents` | GET | 🚧 None | - |
+| `/api/v1/patent/trials/documents/search` | GET, POST | ✅ GET, POST | `search_trial_documents()` (POST)<br>`search_trial_documents_get()` (GET) |
+| `/api/v1/patent/trials/documents/search/download` | GET, POST | ✅ GET, POST | `search_trial_documents_download()` (POST)<br>`search_trial_documents_download_get()` (GET) |
+| `/api/v1/patent/trials/documents/{documentIdentifier}` | GET | ✅ GET | `get_trial_document()` |
+| `/api/v1/patent/trials/{trialNumber}/documents` | GET | ✅ GET | `get_trial_documents_by_trial()` |
 
 ## PTAB Appeals - Decisions Endpoints
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/patent/appeals/decisions/search` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/appeals/decisions/search/download` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/appeals/decisions/{documentIdentifier}` | GET | 🚧 None | - |
-| `/api/v1/patent/appeals/{appealNumber}/decisions` | GET | 🚧 None | - |
+| `/api/v1/patent/appeals/decisions/search` | GET, POST | ✅ GET, POST | `search_appeal_decisions()` (POST)<br>`search_appeal_decisions_get()` (GET) |
+| `/api/v1/patent/appeals/decisions/search/download` | GET, POST | ✅ GET, POST | `search_appeal_decisions_download()` (POST)<br>`search_appeal_decisions_download_get()` (GET) |
+| `/api/v1/patent/appeals/decisions/{documentIdentifier}` | GET | ✅ GET | `get_appeal_decision()` |
+| `/api/v1/patent/appeals/{appealNumber}/decisions` | GET | ✅ GET | `get_appeal_decisions_by_appeal()` |
 
 ## PTAB Interferences - Decisions Endpoints
 
 | Endpoint | API Methods | Support | Library Method |
 |----------|-------------|---------|----------------|
-| `/api/v1/patent/interferences/decisions/search` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/interferences/decisions/search/download` | GET, POST | 🚧 None | - |
-| `/api/v1/patent/interferences/{interferenceNumber}/decisions` | GET | 🚧 None | - |
-| `/api/v1/patent/interferences/decisions/{documentIdentifier}` | GET | 🚧 None | - |
+| `/api/v1/patent/interferences/decisions/search` | GET, POST | ✅ GET, POST | `search_interference_decisions()` (POST)<br>`search_interference_decisions_get()` (GET) |
+| `/api/v1/patent/interferences/decisions/search/download` | GET, POST | ✅ GET, POST | `search_interference_decisions_download()` (POST)<br>`search_interference_decisions_download_get()` (GET) |
+| `/api/v1/patent/interferences/{interferenceNumber}/decisions` | GET | ✅ GET | `get_interference_decisions_by_interference()` |
+| `/api/v1/patent/interferences/decisions/{documentIdentifier}` | GET | ✅ GET | `get_interference_decision()` |
 
 ## Coverage Summary
-- **Total Methods Available**: 50
-- **Fully Supported**: 25 (50%)
+- **Total Methods Available**: 53
+- **Fully Supported**: 49 (92%)
 - **Partially Supported**: 0 (0%)
-- **Not Supported**: 25 (50%)
+- **Not Supported**: 4 (8%)
 
 ## Legend
 - ✅ Fully Implemented and Available
