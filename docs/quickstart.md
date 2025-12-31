@@ -12,7 +12,7 @@ pip install uspto_odp
 
 ### 2. Get Your API Key
 
-Visit the [USPTO Developer Hub](https://developer.uspto.gov/) to obtain your API key.
+Visit the [USPTO Developer Hub](https://data.uspto.gov/home) to obtain your API key.
 
 ### 3. Initialize the Client
 
