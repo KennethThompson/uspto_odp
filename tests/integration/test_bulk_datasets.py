@@ -99,25 +99,25 @@ async def test_get_dataset_product_basic(client):
     Note: This test may fail if the product identifier doesn't exist - that's expected.
     """
     await asyncio.sleep(2)  # Rate limiting
-    
+
     # First, get a valid product identifier from search
     search_result = await client.search_dataset_products_get(limit=1)
-    
+
     await asyncio.sleep(2)  # Rate limiting
-    
+
     if search_result.dataset_product_bag:
         product_identifier = search_result.dataset_product_bag[0].product_identifier
-        
+
         if product_identifier:
             result = await client.get_dataset_product(product_identifier)
-            
+
             assert result is not None
             assert hasattr(result, 'count')
             assert hasattr(result, 'dataset_product_bag')
             assert result.count >= 0
-            
+
             await asyncio.sleep(2)  # Rate limiting
-            
+
             print(f"✓ Retrieved dataset product")
             print(f"  Product Identifier: {product_identifier}")
             print(f"  Count: {result.count}")
@@ -125,6 +125,220 @@ async def test_get_dataset_product_basic(client):
             print("⚠ No product identifier found in search results")
     else:
         print("⚠ No dataset products found to test individual lookup")
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_date_range(client):
+    """
+    Test get_dataset_product with date range filters.
+    """
+    await asyncio.sleep(2)  # Rate limiting
+
+    # First, get a valid product identifier from search
+    search_result = await client.search_dataset_products_get(limit=1)
+
+    await asyncio.sleep(2)  # Rate limiting
+
+    if search_result.dataset_product_bag:
+        product_identifier = search_result.dataset_product_bag[0].product_identifier
+
+        if product_identifier:
+            # Test with date range - using a wide range to ensure some results
+            result = await client.get_dataset_product(
+                product_identifier,
+                file_data_from_date="2020-01-01",
+                file_data_to_date="2024-12-31"
+            )
+
+            assert result is not None
+            assert hasattr(result, 'count')
+            assert result.count >= 0
+
+            await asyncio.sleep(2)  # Rate limiting
+
+            print(f"✓ Retrieved dataset product with date range")
+            print(f"  Product Identifier: {product_identifier}")
+            print(f"  Date Range: 2020-01-01 to 2024-12-31")
+            print(f"  Count: {result.count}")
+        else:
+            print("⚠ No product identifier found in search results")
+    else:
+        print("⚠ No dataset products found to test date range filters")
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_latest(client):
+    """
+    Test get_dataset_product with latest parameter.
+    """
+    await asyncio.sleep(2)  # Rate limiting
+
+    # First, get a valid product identifier from search
+    search_result = await client.search_dataset_products_get(limit=1)
+
+    await asyncio.sleep(2)  # Rate limiting
+
+    if search_result.dataset_product_bag:
+        product_identifier = search_result.dataset_product_bag[0].product_identifier
+
+        if product_identifier:
+            # Test with latest=true to get only the latest file
+            result = await client.get_dataset_product(
+                product_identifier,
+                latest="true"
+            )
+
+            assert result is not None
+            assert hasattr(result, 'count')
+            assert result.count >= 0
+
+            await asyncio.sleep(2)  # Rate limiting
+
+            print(f"✓ Retrieved dataset product with latest=true")
+            print(f"  Product Identifier: {product_identifier}")
+            print(f"  Count: {result.count}")
+        else:
+            print("⚠ No product identifier found in search results")
+    else:
+        print("⚠ No dataset products found to test latest parameter")
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_pagination(client):
+    """
+    Test get_dataset_product with pagination parameters.
+    """
+    await asyncio.sleep(2)  # Rate limiting
+
+    # First, get a valid product identifier from search
+    search_result = await client.search_dataset_products_get(limit=1)
+
+    await asyncio.sleep(2)  # Rate limiting
+
+    if search_result.dataset_product_bag:
+        product_identifier = search_result.dataset_product_bag[0].product_identifier
+
+        if product_identifier:
+            # Test with pagination - offset 0, limit 5
+            result = await client.get_dataset_product(
+                product_identifier,
+                offset=0,
+                limit=5
+            )
+
+            assert result is not None
+            assert hasattr(result, 'count')
+            assert result.count >= 0
+
+            await asyncio.sleep(2)  # Rate limiting
+
+            print(f"✓ Retrieved dataset product with pagination")
+            print(f"  Product Identifier: {product_identifier}")
+            print(f"  Pagination: offset=0, limit=5")
+            print(f"  Count: {result.count}")
+        else:
+            print("⚠ No product identifier found in search results")
+    else:
+        print("⚠ No dataset products found to test pagination")
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_include_files(client):
+    """
+    Test get_dataset_product with includeFiles parameter.
+    """
+    await asyncio.sleep(2)  # Rate limiting
+
+    # First, get a valid product identifier from search
+    search_result = await client.search_dataset_products_get(limit=1)
+
+    await asyncio.sleep(2)  # Rate limiting
+
+    if search_result.dataset_product_bag:
+        product_identifier = search_result.dataset_product_bag[0].product_identifier
+
+        if product_identifier:
+            # Test with includeFiles=true
+            result_with_files = await client.get_dataset_product(
+                product_identifier,
+                include_files="true"
+            )
+
+            assert result_with_files is not None
+            assert result_with_files.count >= 0
+
+            await asyncio.sleep(2)  # Rate limiting
+
+            # Test with includeFiles=false
+            result_without_files = await client.get_dataset_product(
+                product_identifier,
+                include_files="false"
+            )
+
+            assert result_without_files is not None
+            assert result_without_files.count >= 0
+
+            await asyncio.sleep(2)  # Rate limiting
+
+            print(f"✓ Retrieved dataset product with includeFiles parameter")
+            print(f"  Product Identifier: {product_identifier}")
+            print(f"  With files: Count={result_with_files.count}")
+            print(f"  Without files: Count={result_without_files.count}")
+        else:
+            print("⚠ No product identifier found in search results")
+    else:
+        print("⚠ No dataset products found to test includeFiles parameter")
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_all_params(client):
+    """
+    Test get_dataset_product with all optional parameters.
+    """
+    await asyncio.sleep(2)  # Rate limiting
+
+    # First, get a valid product identifier from search
+    search_result = await client.search_dataset_products_get(limit=1)
+
+    await asyncio.sleep(2)  # Rate limiting
+
+    if search_result.dataset_product_bag:
+        product_identifier = search_result.dataset_product_bag[0].product_identifier
+
+        if product_identifier:
+            # Test with all parameters
+            result = await client.get_dataset_product(
+                product_identifier,
+                file_data_from_date="2020-01-01",
+                file_data_to_date="2024-12-31",
+                offset=0,
+                limit=5,
+                include_files="true",
+                latest="false"
+            )
+
+            assert result is not None
+            assert hasattr(result, 'count')
+            assert result.count >= 0
+
+            await asyncio.sleep(2)  # Rate limiting
+
+            print(f"✓ Retrieved dataset product with all optional parameters")
+            print(f"  Product Identifier: {product_identifier}")
+            print(f"  Date Range: 2020-01-01 to 2024-12-31")
+            print(f"  Pagination: offset=0, limit=5")
+            print(f"  includeFiles: true")
+            print(f"  latest: false")
+            print(f"  Count: {result.count}")
+        else:
+            print("⚠ No product identifier found in search results")
+    else:
+        print("⚠ No dataset products found to test all parameters")
 
 
 @pytest.mark.integration

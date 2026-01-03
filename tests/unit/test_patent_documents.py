@@ -1141,14 +1141,15 @@ async def test_get_patent_documents_success(client):
     assert spec_doc.download_options[0].download_url == "https://beta-api.uspto.gov/api/v1/download/applications/12345678/FPC9GG0KPPOPPY4.pdf"
     assert spec_doc.download_options[1].download_url == "https://beta-api.uspto.gov/api/v1/download/applications/12345678/FPC9GG0KPPOPPY4/xmlarchive"
     
-    # Test API call
-    mock_session.get.assert_called_once_with(
-        "https://api.uspto.gov/api/v1/patent/applications/12345678/documents",
-        headers={
-            "X-API-KEY": "test_api_key",
-            "accept": "application/json"
-        }
-    )
+    # Test API call - verify params dict is passed (even if empty)
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0] == "https://api.uspto.gov/api/v1/patent/applications/12345678/documents"
+    assert call_args[1]["headers"]["X-API-KEY"] == "test_api_key"
+    assert call_args[1]["headers"]["accept"] == "application/json"
+    # Params dict should be present (empty when no filters are provided)
+    assert "params" in call_args[1]
+    assert call_args[1]["params"] == {}
     mock_response.json.assert_called_once()
 
 @pytest.mark.asyncio
@@ -1170,3 +1171,269 @@ async def test_get_patent_documents_error(client):
         await client.get_patent_documents("12345678")
     
     assert str(exc_info.value) == "404: Not Found - No details provided"  # Update to match the actual error message
+
+
+@pytest.mark.asyncio
+async def test_get_patent_documents_with_date_from(client):
+    """Test GET /documents endpoint with officialDateFrom parameter"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "documentBag": [
+            {
+                "applicationNumberText": "12345678",
+                "officialDate": "2023-06-15T00:00:00.000-0400",
+                "documentIdentifier": "TEST123",
+                "documentCode": "SRNT",
+                "documentCodeDescriptionText": "Test document",
+                "directionCategory": "INTERNAL",
+                "downloadOptionBag": []
+            }
+        ]
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test with officialDateFrom parameter
+    result = await client.get_patent_documents("12345678", official_date_from="2023-01-01")
+    
+    # Assertions
+    assert result is not None
+    assert len(result.documents) == 1
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/documents")
+    # Check that params dict exists and contains the expected parameter
+    assert "params" in call_args[1]
+    assert call_args[1]["params"]["officialDateFrom"] == "2023-01-01"
+    assert "officialDateTo" not in call_args[1].get("params", {})
+    assert "documentCodes" not in call_args[1].get("params", {})
+
+
+@pytest.mark.asyncio
+async def test_get_patent_documents_with_date_to(client):
+    """Test GET /documents endpoint with officialDateTo parameter"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "documentBag": [
+            {
+                "applicationNumberText": "12345678",
+                "officialDate": "2023-06-15T00:00:00.000-0400",
+                "documentIdentifier": "TEST123",
+                "documentCode": "SRNT",
+                "documentCodeDescriptionText": "Test document",
+                "directionCategory": "INTERNAL",
+                "downloadOptionBag": []
+            }
+        ]
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test with officialDateTo parameter
+    result = await client.get_patent_documents("12345678", official_date_to="2023-12-31")
+    
+    # Assertions
+    assert result is not None
+    assert len(result.documents) == 1
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/documents")
+    # Check that params dict exists and contains the expected parameter
+    assert "params" in call_args[1]
+    assert call_args[1]["params"]["officialDateTo"] == "2023-12-31"
+    assert "officialDateFrom" not in call_args[1].get("params", {})
+    assert "documentCodes" not in call_args[1].get("params", {})
+
+
+@pytest.mark.asyncio
+async def test_get_patent_documents_with_date_range(client):
+    """Test GET /documents endpoint with both date parameters"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "documentBag": [
+            {
+                "applicationNumberText": "12345678",
+                "officialDate": "2023-06-15T00:00:00.000-0400",
+                "documentIdentifier": "TEST123",
+                "documentCode": "SRNT",
+                "documentCodeDescriptionText": "Test document",
+                "directionCategory": "INTERNAL",
+                "downloadOptionBag": []
+            }
+        ]
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test with both date parameters
+    result = await client.get_patent_documents(
+        "12345678",
+        official_date_from="2023-01-01",
+        official_date_to="2023-12-31"
+    )
+    
+    # Assertions
+    assert result is not None
+    assert len(result.documents) == 1
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/documents")
+    # Check that params dict exists and contains the expected parameters
+    assert "params" in call_args[1]
+    assert call_args[1]["params"]["officialDateFrom"] == "2023-01-01"
+    assert call_args[1]["params"]["officialDateTo"] == "2023-12-31"
+    assert "documentCodes" not in call_args[1].get("params", {})
+
+
+@pytest.mark.asyncio
+async def test_get_patent_documents_with_document_codes(client):
+    """Test GET /documents endpoint with documentCodes parameter"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "documentBag": [
+            {
+                "applicationNumberText": "12345678",
+                "officialDate": "2023-06-15T00:00:00.000-0400",
+                "documentIdentifier": "TEST123",
+                "documentCode": "WFEE",
+                "documentCodeDescriptionText": "Fee Worksheet",
+                "directionCategory": "INTERNAL",
+                "downloadOptionBag": []
+            }
+        ]
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Test with single document code
+    result = await client.get_patent_documents("12345678", document_codes="WFEE")
+    
+    # Assertions
+    assert result is not None
+    assert len(result.documents) == 1
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/documents")
+    # Check that params dict exists and contains the expected parameter
+    assert "params" in call_args[1]
+    assert call_args[1]["params"]["documentCodes"] == "WFEE"
+    assert "officialDateFrom" not in call_args[1].get("params", {})
+    assert "officialDateTo" not in call_args[1].get("params", {})
+    
+    # Reset mock for multiple document codes test
+    mock_session.get.reset_mock()
+    async_cm.__aenter__.return_value = mock_response
+    
+    # Test with multiple document codes
+    result = await client.get_patent_documents("12345678", document_codes="SRFW,SRNT")
+    
+    # Assertions
+    assert result is not None
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert "params" in call_args[1]
+    assert call_args[1]["params"]["documentCodes"] == "SRFW,SRNT"
+
+
+@pytest.mark.asyncio
+async def test_get_patent_documents_with_all_filters(client):
+    """Test GET /documents endpoint with all filter parameters"""
+    client, mock_session = client
+    
+    # Create mock response data
+    mock_response_data = {
+        "documentBag": [
+            {
+                "applicationNumberText": "12345678",
+                "officialDate": "2023-06-15T00:00:00.000-0400",
+                "documentIdentifier": "TEST123",
+                "documentCode": "WFEE",
+                "documentCodeDescriptionText": "Fee Worksheet",
+                "directionCategory": "INTERNAL",
+                "downloadOptionBag": []
+            }
+        ]
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test with all parameters
+    result = await client.get_patent_documents(
+        "12345678",
+        official_date_from="2023-01-01",
+        official_date_to="2023-12-31",
+        document_codes="WFEE,SRNT"
+    )
+    
+    # Assertions
+    assert result is not None
+    assert len(result.documents) == 1
+    
+    # Verify API call was made with all correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/documents")
+    # Check that params dict exists and contains all expected parameters
+    assert "params" in call_args[1]
+    params = call_args[1]["params"]
+    assert params["officialDateFrom"] == "2023-01-01"
+    assert params["officialDateTo"] == "2023-12-31"
+    assert params["documentCodes"] == "WFEE,SRNT"

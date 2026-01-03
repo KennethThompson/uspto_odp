@@ -277,21 +277,68 @@ class USPTOClient:
         async with self.session.get(url, headers=self.headers) as response:
             return await self._handle_response(response, PatentFileWrapper.parse_response)
 
-    async def get_patent_documents(self, serial_number: str) -> PatentDocumentCollection:
+    async def get_patent_documents(
+        self, 
+        serial_number: str,
+        official_date_from: Optional[str] = None,
+        official_date_to: Optional[str] = None,
+        document_codes: Optional[str] = None
+    ) -> PatentDocumentCollection:
         """
         Retrieve all documents associated with a patent application.
 
         Args:
             serial_number (str): The USPTO patent application serial number (e.g., '16123456')
+            official_date_from (str, optional): Filter documents by official date from. 
+                                               Format: 'yyyy-MM-dd' (e.g., '2023-01-01')
+            official_date_to (str, optional): Filter documents by official date to. 
+                                             Format: 'yyyy-MM-dd' (e.g., '2023-12-31')
+            document_codes (str, optional): Filter by document codes. Single code or comma-separated 
+                                           codes (e.g., 'WFEE' or 'SRFW,SRNT')
 
         Returns:
             PatentDocumentCollection: Collection of patent documents
 
         Raises:
             USPTOError: If the API request fails
+
+        Examples:
+            # Get all documents
+            documents = await client.get_patent_documents("18571476")
+            
+            # Filter by date range
+            documents = await client.get_patent_documents(
+                "18571476",
+                official_date_from="2023-01-01",
+                official_date_to="2023-12-31"
+            )
+            
+            # Filter by document codes
+            documents = await client.get_patent_documents(
+                "18571476",
+                document_codes="WFEE"
+            )
+            
+            # Combine filters
+            documents = await client.get_patent_documents(
+                "18571476",
+                official_date_from="2023-01-01",
+                official_date_to="2023-12-31",
+                document_codes="SRFW,SRNT"
+            )
         """
         url = self._build_url(self._patent_applications_endpoint, serial_number, "documents")
-        async with self.session.get(url, headers=self.headers) as response:
+        
+        # Build query parameters, only including non-None values
+        params = {}
+        if official_date_from is not None:
+            params['officialDateFrom'] = official_date_from
+        if official_date_to is not None:
+            params['officialDateTo'] = official_date_to
+        if document_codes is not None:
+            params['documentCodes'] = document_codes
+        
+        async with self.session.get(url, params=params, headers=self.headers) as response:
             return await self._handle_response(response, PatentDocumentCollection.from_dict)
 
     async def download_document(
@@ -2052,7 +2099,16 @@ class USPTOClient:
         async with self.session.get(url, params=params, headers=self.headers) as response:
             return await self._handle_response(response, DatasetProductSearchResponseBag.from_dict)
 
-    async def get_dataset_product(self, product_identifier: str) -> DatasetProductResponseBag:
+    async def get_dataset_product(
+        self,
+        product_identifier: str,
+        file_data_from_date: Optional[str] = None,
+        file_data_to_date: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        include_files: Optional[str] = None,
+        latest: Optional[str] = None
+    ) -> DatasetProductResponseBag:
         """
         Retrieve a specific dataset product by its product identifier.
 
@@ -2060,6 +2116,16 @@ class USPTOClient:
 
         Args:
             product_identifier (str): The dataset product identifier
+            file_data_from_date (str, optional): Filter product files by date from.
+                                                Format: 'yyyy-MM-dd' (e.g., '2023-01-01')
+            file_data_to_date (str, optional): Filter product files by date to.
+                                              Format: 'yyyy-MM-dd' (e.g., '2023-12-31')
+            offset (int, optional): Number of product file records to skip. Default: 0
+            limit (int, optional): Number of product file records to collect
+            include_files (str, optional): Set to 'true' to include product files in response,
+                                          'false' to omit them. Default: None (API default behavior)
+            latest (str, optional): Set to 'true' to return only the latest product file,
+                                   'false' otherwise. Default: None (API default behavior)
 
         Returns:
             DatasetProductResponseBag: The dataset product data
@@ -2070,10 +2136,37 @@ class USPTOClient:
         Examples:
             # Get dataset product by product identifier
             product = await client.get_dataset_product('product-12345')
+
+            # Get product with date range filter
+            product = await client.get_dataset_product(
+                'product-12345',
+                file_data_from_date='2023-01-01',
+                file_data_to_date='2023-12-31'
+            )
+
+            # Get product with latest file only
+            product = await client.get_dataset_product('product-12345', latest='true')
+
+            # Get product without files included
+            product = await client.get_dataset_product('product-12345', include_files='false')
         """
         url = self._build_url(self._bulk_datasets_endpoint, product_identifier)
+        params = {}
 
-        async with self.session.get(url, headers=self.headers) as response:
+        if file_data_from_date is not None:
+            params['fileDataFromDate'] = file_data_from_date
+        if file_data_to_date is not None:
+            params['fileDataToDate'] = file_data_to_date
+        if offset is not None:
+            params['offset'] = offset
+        if limit is not None:
+            params['limit'] = limit
+        if include_files is not None:
+            params['includeFiles'] = include_files
+        if latest is not None:
+            params['latest'] = latest
+
+        async with self.session.get(url, params=params, headers=self.headers) as response:
             return await self._handle_response(response, DatasetProductResponseBag.from_dict)
 
     async def get_dataset_file(self, product_identifier: str, file_name: str) -> DatasetFileResponseBag:

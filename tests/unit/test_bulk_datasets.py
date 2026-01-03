@@ -119,7 +119,7 @@ async def test_search_dataset_products_get_all_params(client):
 async def test_get_dataset_product_success(client):
     """Test get_dataset_product with successful response"""
     client, mock_session = client
-    
+
     mock_response_data = {
         "count": 1,
         "datasetProductBag": [
@@ -135,26 +135,221 @@ async def test_get_dataset_product_success(client):
         ],
         "requestIdentifier": "test-get-product-id"
     }
-    
+
     mock_response = Mock()
     mock_response.status = 200
     mock_response.json = AsyncMock(return_value=mock_response_data)
-    
+
     async_cm = AsyncMock()
     async_cm.__aenter__.return_value = mock_response
     mock_session.get.return_value = async_cm
-    
+
     product_identifier = "product-001"
     result = await client.get_dataset_product(product_identifier)
-    
+
     assert result is not None
     assert isinstance(result, DatasetProductResponseBag)
     assert result.count == 1
     assert len(result.dataset_product_bag) == 1
     assert result.dataset_product_bag[0].product_identifier == product_identifier
-    
+
     args, kwargs = mock_session.get.call_args_list[0]
     assert product_identifier in args[0] or product_identifier in str(args[0])
+    assert "params" in kwargs
+    assert kwargs["params"] == {}
+
+
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_all_params(client):
+    """Test get_dataset_product with all optional parameters"""
+    client, mock_session = client
+
+    mock_response_data = {
+        "count": 1,
+        "datasetProductBag": [
+            {
+                "productIdentifier": "product-001",
+                "productName": "Patent Data 2023",
+                "productType": "Patent",
+                "releaseDate": "2023-06-15",
+                "fileCount": 5,
+                "files": [
+                    {
+                        "fileName": "latest-file.zip",
+                        "fileDate": "2023-06-15",
+                        "fileSize": 500000
+                    }
+                ]
+            }
+        ],
+        "requestIdentifier": "test-all-params-id"
+    }
+
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+
+    product_identifier = "product-001"
+    result = await client.get_dataset_product(
+        product_identifier,
+        file_data_from_date="2023-01-01",
+        file_data_to_date="2023-12-31",
+        offset=0,
+        limit=10,
+        include_files="true",
+        latest="true"
+    )
+
+    assert result is not None
+    assert isinstance(result, DatasetProductResponseBag)
+    assert result.count == 1
+
+    args, kwargs = mock_session.get.call_args_list[0]
+    assert product_identifier in args[0] or product_identifier in str(args[0])
+    params = kwargs["params"]
+    assert params["fileDataFromDate"] == "2023-01-01"
+    assert params["fileDataToDate"] == "2023-12-31"
+    assert params["offset"] == 0
+    assert params["limit"] == 10
+    assert params["includeFiles"] == "true"
+    assert params["latest"] == "true"
+
+
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_date_range(client):
+    """Test get_dataset_product with date range filters only"""
+    client, mock_session = client
+
+    mock_response_data = {
+        "count": 1,
+        "datasetProductBag": [
+            {
+                "productIdentifier": "product-001",
+                "productName": "Patent Data 2023",
+                "productType": "Patent",
+                "releaseDate": "2023-06-15"
+            }
+        ],
+        "requestIdentifier": "test-date-range-id"
+    }
+
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+
+    product_identifier = "product-001"
+    result = await client.get_dataset_product(
+        product_identifier,
+        file_data_from_date="2023-01-01",
+        file_data_to_date="2023-12-31"
+    )
+
+    assert result is not None
+    assert result.count == 1
+
+    args, kwargs = mock_session.get.call_args_list[0]
+    params = kwargs["params"]
+    assert params["fileDataFromDate"] == "2023-01-01"
+    assert params["fileDataToDate"] == "2023-12-31"
+    assert "offset" not in params
+    assert "limit" not in params
+    assert "includeFiles" not in params
+    assert "latest" not in params
+
+
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_latest_only(client):
+    """Test get_dataset_product with latest parameter only"""
+    client, mock_session = client
+
+    mock_response_data = {
+        "count": 1,
+        "datasetProductBag": [
+            {
+                "productIdentifier": "product-001",
+                "productName": "Patent Data Latest",
+                "files": [
+                    {
+                        "fileName": "latest.zip",
+                        "fileDate": "2024-01-15"
+                    }
+                ]
+            }
+        ],
+        "requestIdentifier": "test-latest-id"
+    }
+
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+
+    product_identifier = "product-001"
+    result = await client.get_dataset_product(
+        product_identifier,
+        latest="true"
+    )
+
+    assert result is not None
+    assert result.count == 1
+
+    args, kwargs = mock_session.get.call_args_list[0]
+    params = kwargs["params"]
+    assert params["latest"] == "true"
+    assert len(params) == 1
+
+
+@pytest.mark.asyncio
+async def test_get_dataset_product_with_pagination(client):
+    """Test get_dataset_product with pagination parameters"""
+    client, mock_session = client
+
+    mock_response_data = {
+        "count": 1,
+        "datasetProductBag": [
+            {
+                "productIdentifier": "product-001",
+                "productName": "Patent Data",
+                "fileCount": 100
+            }
+        ],
+        "requestIdentifier": "test-pagination-id"
+    }
+
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+
+    product_identifier = "product-001"
+    result = await client.get_dataset_product(
+        product_identifier,
+        offset=20,
+        limit=10
+    )
+
+    assert result is not None
+    assert result.count == 1
+
+    args, kwargs = mock_session.get.call_args_list[0]
+    params = kwargs["params"]
+    assert params["offset"] == 20
+    assert params["limit"] == 10
+    assert len(params) == 2
 
 
 @pytest.mark.asyncio

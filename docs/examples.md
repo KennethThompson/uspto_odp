@@ -161,15 +161,72 @@ from uspto_odp.controller.uspto_odp_client import USPTOClient
 async def get_documents():
     client = USPTOClient(api_key="your-api-key-here")
     
+    # Get all documents
     documents = await client.get_patent_documents("14412875")
     
     print(f"Total documents: {len(documents.documents)}")
     for doc in documents.documents:
-        print(f"- {doc.document_type}: {doc.document_name}")
+        print(f"- {doc.document_code}: {doc.document_description}")
+        print(f"  Date: {doc.official_date.date()}")
     
     await client.session.close()
 
 asyncio.run(get_documents())
+```
+
+### Filter Patent Documents by Date
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def filter_documents_by_date():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Get documents within a date range
+    documents = await client.get_patent_documents(
+        "18571476",
+        official_date_from="2023-01-01",
+        official_date_to="2023-12-31"
+    )
+    
+    print(f"Found {len(documents.documents)} documents in date range")
+    for doc in documents.documents:
+        print(f"{doc.document_code}: {doc.document_description} - {doc.official_date.date()}")
+    
+    await client.session.close()
+
+asyncio.run(filter_documents_by_date())
+```
+
+### Filter Patent Documents by Document Codes
+
+```python
+import asyncio
+from uspto_odp.controller.uspto_odp_client import USPTOClient
+
+async def filter_documents_by_codes():
+    client = USPTOClient(api_key="your-api-key-here")
+    
+    # Filter by single document code
+    documents = await client.get_patent_documents(
+        "18571476",
+        document_codes="WFEE"
+    )
+    
+    print(f"Found {len(documents.documents)} documents with code WFEE")
+    
+    # Filter by multiple document codes
+    documents = await client.get_patent_documents(
+        "18571476",
+        document_codes="SRFW,SRNT"
+    )
+    
+    print(f"Found {len(documents.documents)} documents with codes SRFW or SRNT")
+    
+    await client.session.close()
+
+asyncio.run(filter_documents_by_codes())
 ```
 
 ### Get Patent Assignments
