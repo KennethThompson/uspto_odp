@@ -70,7 +70,7 @@ pip install -e ".[dev]"
 ## Requirements
 
 - Python 3.9 or higher
-- USPTO API Key ([Get one here](https://developer.uspto.gov/))
+- USPTO API Key ([Get one here](https://data.uspto.gov/home))
 
 ## Documentation
 
@@ -102,5 +102,5 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 
 - [GitHub Repository](https://github.com/KennethThompson/uspto_odp)
 - [Issue Tracker](https://github.com/KennethThompson/uspto_odp/issues)
-- [USPTO Developer Hub](https://developer.uspto.gov/)
+- [USPTO Developer Hub](https://data.uspto.gov/home)
 - [USPTO Open Data Portal](https://data.uspto.gov/)

@@ -68,7 +68,7 @@ print(uspto_odp.__version__)
 
 Before using the library, you'll need to obtain an API key from the USPTO Developer Hub:
 
-1. Visit [USPTO Developer Hub](https://developer.uspto.gov/)
+1. Visit [USPTO Developer Hub](https://data.uspto.gov/home)
 2. Sign up for an account
 3. Request an API key
 4. Keep your API key secure and never commit it to version control
