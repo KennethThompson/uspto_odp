@@ -555,3 +555,92 @@ async def test_search_patent_applications_get_error_404(client):
     assert exc_info.value.error == "Not Found"
     assert exc_info.value.error_details == "No matching records found"
     assert exc_info.value.request_identifier == "test-request-id"
+
+
+@pytest.mark.asyncio
+async def test_search_patent_applications_get_by_docket_number(client):
+    """Test GET /search endpoint with docket number query parameter"""
+    client, mock_session = client
+    
+    # Create mock response data matching real API response format
+    # Includes application 18571476 with docket number 3NG00003USU1
+    mock_response_data = {
+        "count": 2,
+        "patentFileWrapperDataBag": [
+            {
+                "applicationNumberText": "18571476",
+                "applicationMetaData": {
+                    "docketNumber": "3NG00003USU1",
+                    "patentNumber": None,
+                    "inventionTitle": "SYSTEMS AND METHODS FOR ARCHIVAL OF DATA CAPTURES FROM A MOBILE COMMUNICATION NETWORK",
+                    "applicationStatusCode": 41,
+                    "applicationTypeCode": "UTL",
+                    "applicationTypeLabelName": "Utility",
+                    "filingDate": "2023-12-18",
+                    "firstInventorName": "Kenneth Michael Thompson"
+                }
+            },
+            {
+                "applicationNumberText": "18571477",
+                "applicationMetaData": {
+                    "docketNumber": "3NG00003USU1",
+                    "patentNumber": None,
+                    "inventionTitle": "Another Application",
+                    "applicationStatusCode": 40,
+                    "applicationTypeCode": "UTL",
+                    "applicationTypeLabelName": "Utility",
+                    "filingDate": "2023-12-19"
+                }
+            }
+        ],
+        "requestIdentifier": "test-request-id-docket"
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.get.return_value = async_cm
+    
+    # Execute test - search by docket number
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.docketNumber:3NG00003USU1",
+        limit=100
+    )
+    
+    # Assertions
+    assert result is not None
+    assert result["count"] == 2
+    assert len(result["patentFileWrapperDataBag"]) == 2
+    assert result["requestIdentifier"] == "test-request-id-docket"
+    
+    # Verify application 18571476 is in the results
+    application_numbers = [
+        app["applicationNumberText"] 
+        for app in result["patentFileWrapperDataBag"]
+    ]
+    assert "18571476" in application_numbers
+    
+    # Find and verify the specific application entry
+    app_18571476 = next(
+        app for app in result["patentFileWrapperDataBag"] 
+        if app["applicationNumberText"] == "18571476"
+    )
+    
+    # Verify it has the expected docket number
+    assert "applicationMetaData" in app_18571476
+    assert "docketNumber" in app_18571476["applicationMetaData"]
+    assert app_18571476["applicationMetaData"]["docketNumber"] == "3NG00003USU1"
+    assert app_18571476["applicationNumberText"] == "18571476"
+    
+    # Verify API call was made with correct parameters
+    mock_session.get.assert_called_once()
+    call_args = mock_session.get.call_args
+    assert call_args[0][0].endswith("/search")
+    assert call_args[1]["params"]["q"] == "applicationMetaData.docketNumber:3NG00003USU1"
+    assert call_args[1]["params"]["limit"] == 100
+    mock_response.json.assert_called_once()

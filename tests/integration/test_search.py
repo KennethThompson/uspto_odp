@@ -246,3 +246,101 @@ async def test_search_patent_applications_error_handling(client):
         )
     
     print("✓ Error handling works correctly for invalid queries")
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_patent_applications_by_docket_number(client):
+    """
+    Integration test for searching by docket number.
+    Searches for docket number "3NG00003USU1" and verifies application 18571476 is in the results.
+    """
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.docketNumber:3NG00003USU1",
+        limit=100  # Increase limit to ensure we find the application
+    )
+    
+    assert result is not None
+    assert "count" in result
+    assert "patentFileWrapperDataBag" in result
+    assert result["count"] > 0, "Expected at least one result for docket number 3NG00003USU1"
+    
+    # Verify that application 18571476 is in the results
+    application_numbers = [
+        app["applicationNumberText"] 
+        for app in result["patentFileWrapperDataBag"]
+    ]
+    
+    assert "18571476" in application_numbers, \
+        f"Application 18571476 not found in search results. Found applications: {application_numbers[:10]}"
+    
+    # Find the specific application entry
+    app_18571476 = next(
+        app for app in result["patentFileWrapperDataBag"] 
+        if app["applicationNumberText"] == "18571476"
+    )
+    
+    # Verify it has the expected docket number
+    assert "applicationMetaData" in app_18571476
+    assert "docketNumber" in app_18571476["applicationMetaData"]
+    assert app_18571476["applicationMetaData"]["docketNumber"] == "3NG00003USU1"
+    
+    print(f"✓ Found application 18571476 with docket number 3NG00003USU1")
+    print(f"  Total results: {result['count']}")
+    print(f"  Applications found: {len(result['patentFileWrapperDataBag'])}")
+    
+    await asyncio.sleep(1)  # Rate limiting
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_patent_applications_by_docket_number_and_customer_number(client):
+    """
+    Integration test for searching by docket number prefix and customer number.
+    Searches for docket numbers beginning with "3NG" AND customerNumber equal to 51886.
+    Verifies application 18571476 is in the results.
+    """
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.docketNumber:3NG* AND applicationMetaData.customerNumber:51886",
+        limit=100  # Increase limit to ensure we find the application
+    )
+    
+    assert result is not None
+    assert "count" in result
+    assert "patentFileWrapperDataBag" in result
+    assert result["count"] > 0, \
+        "Expected at least one result for docket number beginning with 3NG and customerNumber 51886"
+    
+    # Verify that application 18571476 is in the results
+    application_numbers = [
+        app["applicationNumberText"] 
+        for app in result["patentFileWrapperDataBag"]
+    ]
+    
+    assert "18571476" in application_numbers, \
+        f"Application 18571476 not found in search results. Found applications: {application_numbers[:10]}"
+    
+    # Find the specific application entry
+    app_18571476 = next(
+        app for app in result["patentFileWrapperDataBag"] 
+        if app["applicationNumberText"] == "18571476"
+    )
+    
+    # Verify it has the expected docket number (should begin with 3NG)
+    assert "applicationMetaData" in app_18571476
+    assert "docketNumber" in app_18571476["applicationMetaData"]
+    assert app_18571476["applicationMetaData"]["docketNumber"].startswith("3NG"), \
+        f"Expected docket number to start with '3NG', got: {app_18571476['applicationMetaData']['docketNumber']}"
+    
+    # Verify it has the expected customer number
+    assert "customerNumber" in app_18571476["applicationMetaData"]
+    assert app_18571476["applicationMetaData"]["customerNumber"] == 51886, \
+        f"Expected customerNumber 51886, got: {app_18571476['applicationMetaData']['customerNumber']}"
+    
+    print(f"✓ Found application 18571476 with docket number starting with '3NG' and customerNumber 51886")
+    print(f"  Docket Number: {app_18571476['applicationMetaData']['docketNumber']}")
+    print(f"  Customer Number: {app_18571476['applicationMetaData']['customerNumber']}")
+    print(f"  Total results: {result['count']}")
+    print(f"  Applications found: {len(result['patentFileWrapperDataBag'])}")
+    
+    await asyncio.sleep(1)  # Rate limiting
