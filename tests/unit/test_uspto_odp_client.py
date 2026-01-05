@@ -644,3 +644,141 @@ async def test_search_patent_applications_get_by_docket_number(client):
     assert call_args[1]["params"]["q"] == "applicationMetaData.docketNumber:3NG00003USU1"
     assert call_args[1]["params"]["limit"] == 100
     mock_response.json.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_search_patent_applications_post_complex_query(client):
+    """Test POST /search endpoint with complex query including filters, rangeFilters, sort, fields, pagination, and facets"""
+    client, mock_session = client
+    
+    # Create mock response data matching real API response format
+    mock_response_data = {
+        "count": 5,
+        "patentFileWrapperDataBag": [
+            {
+                "applicationNumberText": "14412875",
+                "correspondenceAddressBag": [],
+                "applicationMetaData": {
+                    "filingDate": "2014-12-31",
+                    "applicationTypeLabelName": "Utility",
+                    "applicationStatusDescriptionText": "Patented Case",
+                    "grantDate": "2015-08-04",
+                    "applicationStatusCode": 150
+                }
+            },
+            {
+                "applicationNumberText": "14412876",
+                "correspondenceAddressBag": [],
+                "applicationMetaData": {
+                    "filingDate": "2014-12-30",
+                    "applicationTypeLabelName": "Utility",
+                    "applicationStatusDescriptionText": "Patented Case",
+                    "grantDate": "2015-08-05",
+                    "applicationStatusCode": 150
+                }
+            }
+        ],
+        "facets": {
+            "applicationMetaData.applicationTypeLabelName": {
+                "Utility": 5
+            },
+            "applicationMetaData.applicationStatusCode": {
+                "150": 5
+            }
+        },
+        "requestIdentifier": "test-request-id-complex"
+    }
+    
+    # Create mock response
+    mock_response = Mock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value=mock_response_data)
+    
+    # Create async context manager mock
+    async_cm = AsyncMock()
+    async_cm.__aenter__.return_value = mock_response
+    mock_session.post.return_value = async_cm
+    
+    # Execute test - complex POST query
+    payload = {
+        "q": "applicationMetaData.applicationTypeLabelName:Utility",
+        "filters": [
+            {
+                "name": "applicationMetaData.applicationStatusDescriptionText",
+                "value": [
+                    "Patented Case"
+                ]
+            }
+        ],
+        "rangeFilters": [
+            {
+                "field": "applicationMetaData.grantDate",
+                "valueFrom": "2010-08-04",
+                "valueTo": "2022-08-04"
+            }
+        ],
+        "sort": [
+            {
+                "field": "applicationMetaData.filingDate",
+                "order": "desc"
+            }
+        ],
+        "fields": [
+            "applicationNumberText",
+            "correspondenceAddressBag",
+            "applicationMetaData.filingDate"
+        ],
+        "pagination": {
+            "offset": 0,
+            "limit": 25
+        },
+        "facets": [
+            "applicationMetaData.applicationTypeLabelName",
+            "applicationMetaData.applicationStatusCode"
+        ]
+    }
+    
+    result = await client.search_patent_applications(payload)
+    
+    # Assertions
+    assert result is not None
+    assert result["count"] == 5
+    assert len(result["patentFileWrapperDataBag"]) == 2
+    assert result["requestIdentifier"] == "test-request-id-complex"
+    
+    # Verify facets are present
+    assert "facets" in result
+    assert "applicationMetaData.applicationTypeLabelName" in result["facets"]
+    assert "applicationMetaData.applicationStatusCode" in result["facets"]
+    
+    # Verify all results match filters
+    for app in result["patentFileWrapperDataBag"]:
+        assert "applicationMetaData" in app
+        assert app["applicationMetaData"]["applicationTypeLabelName"] == "Utility"
+        assert app["applicationMetaData"]["applicationStatusDescriptionText"] == "Patented Case"
+        assert "filingDate" in app["applicationMetaData"]
+        assert "applicationNumberText" in app
+        assert "correspondenceAddressBag" in app
+        
+        # Verify grant date is within range
+        if "grantDate" in app["applicationMetaData"]:
+            grant_date = app["applicationMetaData"]["grantDate"]
+            assert grant_date >= "2010-08-04" and grant_date <= "2022-08-04"
+    
+    # Verify results are sorted by filing date descending
+    filing_dates = [
+        app["applicationMetaData"]["filingDate"] 
+        for app in result["patentFileWrapperDataBag"]
+        if "filingDate" in app["applicationMetaData"]
+    ]
+    assert filing_dates == sorted(filing_dates, reverse=True), \
+        "Results should be sorted by filingDate desc"
+    
+    # Verify API call was made with correct payload
+    mock_session.post.assert_called_once()
+    call_args = mock_session.post.call_args
+    assert call_args[0][0].endswith("/search")
+    assert call_args[1]["json"] == payload
+    assert call_args[1]["headers"]["X-API-KEY"] == "test_api_key"
+    assert call_args[1]["headers"]["accept"] == "application/json"
+    mock_response.json.assert_called_once()

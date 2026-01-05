@@ -344,3 +344,94 @@ async def test_search_patent_applications_by_docket_number_and_customer_number(c
     print(f"  Applications found: {len(result['patentFileWrapperDataBag'])}")
     
     await asyncio.sleep(1)  # Rate limiting
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_patent_applications_post_complex_query(client):
+    """
+    Integration test for POST search method with complex query including filters, rangeFilters,
+    sort, fields, pagination, and facets.
+    Searches for Utility applications with status "Patented Case" granted between 2010-08-04 and 2022-08-04.
+    """
+    payload = {
+        "q": "applicationMetaData.applicationTypeLabelName:Utility",
+        "filters": [
+            {
+                "name": "applicationMetaData.applicationStatusDescriptionText",
+                "value": [
+                    "Patented Case"
+                ]
+            }
+        ],
+        "rangeFilters": [
+            {
+                "field": "applicationMetaData.grantDate",
+                "valueFrom": "2010-08-04",
+                "valueTo": "2022-08-04"
+            }
+        ],
+        "sort": [
+            {
+                "field": "applicationMetaData.filingDate",
+                "order": "desc"
+            }
+        ],
+        "fields": [
+            "applicationNumberText",
+            "correspondenceAddressBag",
+            "applicationMetaData.filingDate"
+        ],
+        "pagination": {
+            "offset": 0,
+            "limit": 25
+        },
+        "facets": [
+            "applicationMetaData.applicationTypeLabelName",
+            "applicationMetaData.applicationStatusCode"
+        ]
+    }
+    
+    result = await client.search_patent_applications(payload)
+    
+    assert result is not None
+    assert "count" in result
+    assert "patentFileWrapperDataBag" in result
+    assert result["count"] >= 0  # May be 0 if no results match
+    
+    # Verify pagination limit
+    assert len(result["patentFileWrapperDataBag"]) <= 25
+    
+    # If we have results, verify structure and filters
+    if len(result["patentFileWrapperDataBag"]) > 0:
+        # Verify requested fields are included
+        first_app = result["patentFileWrapperDataBag"][0]
+        assert "applicationNumberText" in first_app
+        assert "applicationMetaData" in first_app
+        assert "filingDate" in first_app["applicationMetaData"]
+        assert "correspondenceAddressBag" in first_app
+        
+        # Note: When fields are specified, only those fields are returned
+        # So we can't verify applicationTypeLabelName or applicationStatusDescriptionText
+        # as they weren't in the fields list. The filters are still applied server-side.
+        
+        # Verify results are sorted by filing date descending
+        filing_dates = []
+        for app in result["patentFileWrapperDataBag"]:
+            if "applicationMetaData" in app and "filingDate" in app["applicationMetaData"]:
+                filing_dates.append(app["applicationMetaData"]["filingDate"])
+        
+        if len(filing_dates) > 1:
+            assert filing_dates == sorted(filing_dates, reverse=True), \
+                "Results should be sorted by filingDate desc"
+    
+    # Verify facets are present if results exist
+    if result["count"] > 0:
+        assert "facets" in result, "Facets should be present in response"
+    
+    print(f"✓ POST complex query successful: found {result['count']} results")
+    print(f"  Applications returned: {len(result['patentFileWrapperDataBag'])}")
+    if "facets" in result:
+        print(f"  Facets present: {list(result['facets'].keys())}")
+    
+    await asyncio.sleep(1)  # Rate limiting
