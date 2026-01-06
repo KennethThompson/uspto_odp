@@ -579,3 +579,118 @@ async def test_search_patent_applications_by_docket_with_fields_and_sort(client)
     print(f"  Results sorted correctly by filingDate desc")
     
     await asyncio.sleep(1)  # Rate limiting
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_patent_applications_by_customer_number(client):
+    """
+    Integration test for searching patent applications by customer number only.
+    Searches for all applications with customerNumber 51886 without docket filtering.
+    """
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.customerNumber:51886",
+        fields="applicationNumberText,applicationMetaData.inventionTitle,applicationMetaData.patentNumber,applicationMetaData.filingDate,applicationMetaData.docketNumber",
+        sort="applicationMetaData.filingDate desc",
+        limit=10,
+        offset=0
+    )
+    
+    assert result is not None
+    assert "count" in result
+    assert "patentFileWrapperDataBag" in result
+    assert result["count"] > 0, "Expected at least one result for customerNumber 51886"
+    assert len(result["patentFileWrapperDataBag"]) > 0, "Expected at least one result in response"
+    
+    # Verify pagination limit
+    assert len(result["patentFileWrapperDataBag"]) <= 10
+    
+    # Verify all results have the requested fields
+    for app in result["patentFileWrapperDataBag"]:
+        assert "applicationNumberText" in app
+        assert "applicationMetaData" in app
+        assert "filingDate" in app["applicationMetaData"]
+        assert "docketNumber" in app["applicationMetaData"]
+        assert "inventionTitle" in app["applicationMetaData"]
+        # patentNumber may be null for pending applications
+        
+        # Verify customer number matches (if present in response)
+        if "customerNumber" in app["applicationMetaData"]:
+            assert app["applicationMetaData"]["customerNumber"] == 51886
+    
+    # Verify results are sorted by filing date descending
+    filing_dates = [
+        app["applicationMetaData"]["filingDate"]
+        for app in result["patentFileWrapperDataBag"]
+        if "applicationMetaData" in app and "filingDate" in app["applicationMetaData"]
+    ]
+    
+    if len(filing_dates) > 1:
+        assert filing_dates == sorted(filing_dates, reverse=True), \
+            "Results should be sorted by filingDate desc"
+    
+    print(f"✓ Search by customerNumber 51886 successful")
+    print(f"  Total results: {result['count']}")
+    print(f"  Applications returned: {len(result['patentFileWrapperDataBag'])}")
+    
+    await asyncio.sleep(1)  # Rate limiting
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_patent_applications_by_customer_number_and_partial_docket(client):
+    """
+    Integration test for searching patent applications by customer number and partial docket number.
+    Searches for applications with customerNumber 51886 and docket number beginning with "3NG".
+    """
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.customerNumber:51886 AND applicationMetaData.docketNumber:3NG*",
+        fields="applicationNumberText,applicationMetaData.inventionTitle,applicationMetaData.patentNumber,applicationMetaData.filingDate,applicationMetaData.docketNumber",
+        sort="applicationMetaData.filingDate desc",
+        limit=10,
+        offset=0
+    )
+    
+    assert result is not None
+    assert "count" in result
+    assert "patentFileWrapperDataBag" in result
+    assert result["count"] > 0, "Expected at least one result for customerNumber 51886 with docket 3NG*"
+    assert len(result["patentFileWrapperDataBag"]) > 0, "Expected at least one result in response"
+    
+    # Verify pagination limit
+    assert len(result["patentFileWrapperDataBag"]) <= 10
+    
+    # Verify all results have the requested fields and match criteria
+    for app in result["patentFileWrapperDataBag"]:
+        assert "applicationNumberText" in app
+        assert "applicationMetaData" in app
+        assert "filingDate" in app["applicationMetaData"]
+        assert "docketNumber" in app["applicationMetaData"]
+        assert "inventionTitle" in app["applicationMetaData"]
+        # patentNumber may be null for pending applications
+        
+        # Verify customer number matches (if present in response)
+        if "customerNumber" in app["applicationMetaData"]:
+            assert app["applicationMetaData"]["customerNumber"] == 51886
+        
+        # Verify docket number starts with "3NG"
+        docket = app["applicationMetaData"]["docketNumber"]
+        assert docket is not None, "Docket number should not be None"
+        assert docket.startswith("3NG"), f"Expected docket to start with '3NG', got: {docket}"
+    
+    # Verify results are sorted by filing date descending
+    filing_dates = [
+        app["applicationMetaData"]["filingDate"]
+        for app in result["patentFileWrapperDataBag"]
+        if "applicationMetaData" in app and "filingDate" in app["applicationMetaData"]
+    ]
+    
+    if len(filing_dates) > 1:
+        assert filing_dates == sorted(filing_dates, reverse=True), \
+            "Results should be sorted by filingDate desc"
+    
+    print(f"✓ Search by customerNumber 51886 and docket 3NG* successful")
+    print(f"  Total results: {result['count']}")
+    print(f"  Applications returned: {len(result['patentFileWrapperDataBag'])}")
+    
+    await asyncio.sleep(1)  # Rate limiting
