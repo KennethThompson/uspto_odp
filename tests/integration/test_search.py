@@ -435,3 +435,147 @@ async def test_search_patent_applications_post_complex_query(client):
         print(f"  Facets present: {list(result['facets'].keys())}")
     
     await asyncio.sleep(1)  # Rate limiting
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_patent_applications_by_docket_with_fields_and_sort(client):
+    """
+    Integration test for searching by docket number prefix and customer number with specific fields,
+    sorting, and limit parameters.
+    Similar to: search_by_docket.py 3NG --customer-number 51886 --fields "..." --sort "..." --limit 50
+    
+    This test demonstrates a complex search query that:
+    - Searches for docket numbers beginning with "3NG" (wildcard: 3NG*)
+    - Filters by customerNumber 51886
+    - Returns only specified fields: applicationNumberText, inventionTitle, patentNumber, filingDate, docketNumber
+    - Sorts results by filingDate descending
+    - Limits results to 50
+    
+    Expected response structure:
+    {
+        "count": <number>,
+        "patentFileWrapperDataBag": [
+            {
+                "applicationNumberText": "18571476",
+                "applicationMetaData": {
+                    "filingDate": "2023-12-18",
+                    "inventionTitle": "...",
+                    "patentNumber": null or <number>,
+                    "docketNumber": "3NG00003USU1"
+                }
+            },
+            ...
+        ]
+    }
+    """
+    result = await client.search_patent_applications_get(
+        q="applicationMetaData.docketNumber:3NG* AND applicationMetaData.customerNumber:51886",
+        fields="applicationNumberText,applicationMetaData.inventionTitle,applicationMetaData.patentNumber,applicationMetaData.filingDate,applicationMetaData.docketNumber",
+        sort="applicationMetaData.filingDate desc",
+        limit=50,
+        offset=0
+    )
+    
+    assert result is not None
+    assert "count" in result
+    assert "patentFileWrapperDataBag" in result
+    assert result["count"] >= 0
+    
+    # Verify pagination parameters in response (if present)
+    if "offset" in result:
+        assert result["offset"] == 0
+    if "limit" in result:
+        assert result["limit"] == 50
+    
+    # Verify pagination limit
+    assert len(result["patentFileWrapperDataBag"]) <= 50
+    
+    # Verify expected count (should be 3 based on the example response)
+    assert result["count"] == 3, f"Expected count of 3, got {result['count']}"
+    
+    # Verify we have exactly 3 results
+    assert len(result["patentFileWrapperDataBag"]) == 3, \
+        f"Expected 3 applications, got {len(result['patentFileWrapperDataBag'])}"
+    
+    # Verify that application 18571476 is in the results
+    application_numbers = [
+        app["applicationNumberText"] 
+        for app in result["patentFileWrapperDataBag"]
+    ]
+    
+    assert "18571476" in application_numbers, \
+        f"Application 18571476 not found in search results. Found applications: {application_numbers}"
+    
+    # Verify all expected applications are present
+    expected_apps = ["18571476", "PCTUS2234307", "63213141"]
+    for expected_app in expected_apps:
+        assert expected_app in application_numbers, \
+            f"Expected application {expected_app} not found in results"
+    
+    # Find and verify each application entry
+    app_18571476 = next(
+        app for app in result["patentFileWrapperDataBag"] 
+        if app["applicationNumberText"] == "18571476"
+    )
+    
+    app_pct = next(
+        app for app in result["patentFileWrapperDataBag"] 
+        if app["applicationNumberText"] == "PCTUS2234307"
+    )
+    
+    app_63213141 = next(
+        app for app in result["patentFileWrapperDataBag"] 
+        if app["applicationNumberText"] == "63213141"
+    )
+    
+    # Verify requested fields are present for application 18571476
+    assert "applicationNumberText" in app_18571476
+    assert app_18571476["applicationNumberText"] == "18571476"
+    
+    assert "applicationMetaData" in app_18571476
+    assert "inventionTitle" in app_18571476["applicationMetaData"]
+    assert "filingDate" in app_18571476["applicationMetaData"]
+    assert app_18571476["applicationMetaData"]["filingDate"] == "2023-12-18"
+    
+    # Verify invention title matches expected value
+    expected_title = "SYSTEMS AND METHODS FOR ARCHIVAL OF DATA CAPTURES FROM A MOBILE COMMUNICATION NETWORK"
+    assert app_18571476["applicationMetaData"]["inventionTitle"] == expected_title
+    
+    # Verify docket number starts with 3NG (if present in response)
+    if "docketNumber" in app_18571476["applicationMetaData"]:
+        assert app_18571476["applicationMetaData"]["docketNumber"].startswith("3NG"), \
+            f"Expected docket number to start with '3NG', got: {app_18571476['applicationMetaData']['docketNumber']}"
+    
+    # Verify PCT application
+    assert app_pct["applicationNumberText"] == "PCTUS2234307"
+    assert app_pct["applicationMetaData"]["filingDate"] == "2022-06-21"
+    assert app_pct["applicationMetaData"]["inventionTitle"] == expected_title
+    
+    # Verify third application
+    assert app_63213141["applicationNumberText"] == "63213141"
+    assert app_63213141["applicationMetaData"]["filingDate"] == "2021-06-21"
+    assert app_63213141["applicationMetaData"]["inventionTitle"] == expected_title
+    
+    # Verify results are sorted by filing date descending (newest first)
+    filing_dates = [
+        app["applicationMetaData"]["filingDate"]
+        for app in result["patentFileWrapperDataBag"]
+        if "applicationMetaData" in app and "filingDate" in app["applicationMetaData"]
+    ]
+    
+    assert filing_dates == sorted(filing_dates, reverse=True), \
+        f"Results should be sorted by filingDate desc. Got: {filing_dates}"
+    
+    # Verify expected order: 2023-12-18, 2022-06-21, 2021-06-21
+    assert filing_dates == ["2023-12-18", "2022-06-21", "2021-06-21"], \
+        f"Expected filing dates in descending order, got: {filing_dates}"
+    
+    print(f"✓ Found all 3 expected applications:")
+    print(f"  - 18571476 (filing: {app_18571476['applicationMetaData']['filingDate']})")
+    print(f"  - PCTUS2234307 (filing: {app_pct['applicationMetaData']['filingDate']})")
+    print(f"  - 63213141 (filing: {app_63213141['applicationMetaData']['filingDate']})")
+    print(f"  Total results: {result['count']}")
+    print(f"  Results sorted correctly by filingDate desc")
+    
+    await asyncio.sleep(1)  # Rate limiting

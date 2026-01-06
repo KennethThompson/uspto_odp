@@ -599,6 +599,22 @@ class USPTOClient:
                 filters='applicationMetaData.applicationTypeCode UTL',
                 limit=100
             )
+            
+            # Complex search by partial docket number and customer number with specific fields
+            # This example searches for docket numbers beginning with "3NG" AND customerNumber 51886,
+            # returns only specified fields, sorted by filing date descending
+            results = await client.search_patent_applications_get(
+                q='applicationMetaData.docketNumber:3NG* AND applicationMetaData.customerNumber:51886',
+                fields='applicationNumberText,applicationMetaData.inventionTitle,applicationMetaData.patentNumber,applicationMetaData.filingDate,applicationMetaData.docketNumber',
+                sort='applicationMetaData.filingDate desc',
+                limit=50,
+                offset=0
+            )
+            # Expected response includes:
+            # - count: total number of matching results
+            # - patentFileWrapperDataBag: array of applications with requested fields
+            # - Each application includes: applicationNumberText and applicationMetaData with
+            #   inventionTitle, patentNumber, filingDate, and docketNumber fields
         """
         url = self._build_url(self._patent_applications_endpoint, "search")
 
